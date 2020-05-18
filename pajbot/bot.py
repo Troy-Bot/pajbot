@@ -235,10 +235,6 @@ class Bot:
             self.twitter_manager = PBTwitterManager(self)
         else:
             self.twitter_manager = TwitterManager(self)
-        self.module_manager = ModuleManager(self.socket_manager, bot=self).load()
-        self.commands = CommandManager(
-            socket_manager=self.socket_manager, module_manager=self.module_manager, bot=self
-        ).load()
         streamlabs_token = config["streamlabs"].get("socket_access_token")
         self.websocket_manager = WebSocketManager(self)
         self.songrequest_websocket_manager = SongRequestWebSocketManager(self)
@@ -246,6 +242,10 @@ class Bot:
         self.pubsub_manager = PubSubManager(self, self.streamer_access_token_manager)
         self.songrequest_manager = SongrequestManager(self, self.config["youtube"]["api_key"])
         self.spotify_streamlabs_manager = SpotifyStreamLabsManager(self)
+        self.module_manager = ModuleManager(self.socket_manager, bot=self).load()
+        self.commands = CommandManager(
+            socket_manager=self.socket_manager, module_manager=self.module_manager, bot=self
+        ).load()
         SongRequestQueueManager.init(self.streamer)
         HandlerManager.trigger("on_managers_loaded")
 
