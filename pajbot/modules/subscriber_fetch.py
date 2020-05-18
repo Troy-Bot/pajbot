@@ -3,9 +3,8 @@ import logging
 from requests import HTTPError
 from sqlalchemy import text
 
-from pajbot.apiwrappers.authentication.token_manager import UserAccessTokenManager, NoTokenError
+from pajbot.apiwrappers.authentication.token_manager import NoTokenError
 from pajbot.managers.db import DBManager
-from pajbot.managers.redis import RedisManager
 from pajbot.managers.schedule import ScheduleManager
 from pajbot.models.command import Command, CommandExample
 from pajbot.modules import BaseModule
@@ -31,16 +30,9 @@ class SubscriberFetchModule(BaseModule):
 
     @time_method
     def _update_subscribers(self):
-        access_token_manager = UserAccessTokenManager(
-            api=self.bot.twitch_id_api,
-            redis=RedisManager.get(),
-            username=self.bot.streamer,
-            user_id=self.bot.streamer_user_id,
-        )
-
         try:
-            subscriber_ids = self.bot.twitch_helix_api.fetch_all_subscribers(
-                self.bot.streamer_user_id, access_token_manager
+            subscriber_ids_and_tier = self.bot.twitch_helix_api.fetch_all_subscribers(
+                self.bot.streamer_user_id, self.bot.streamer_access_token_manager
             )
         except NoTokenError:
             log.warning(
@@ -58,7 +50,7 @@ class SubscriberFetchModule(BaseModule):
             else:
                 raise
 
-        user_basics = self.bot.twitch_helix_api.bulk_get_user_basics_by_id(subscriber_ids)
+        user_basics = self.bot.twitch_helix_api.bulk_get_user_basics_by_id(list(subscriber_ids_and_tier.keys()))
         # filter out deleted/invalid users
         user_basics = [e for e in user_basics if e is not None]
 
@@ -73,7 +65,8 @@ class SubscriberFetchModule(BaseModule):
 CREATE TEMPORARY TABLE subscribers(
     id TEXT PRIMARY KEY NOT NULL,
     login TEXT NOT NULL,
-    name TEXT NOT NULL
+    name TEXT NOT NULL,
+    tier INTEGER NOT NULL
 )
 ON COMMIT DROP"""
                 )
@@ -84,9 +77,16 @@ ON COMMIT DROP"""
                 # if len(user_basics) was 0, then we would try to execute this SQL without any values,
                 # which would then fail.
                 # len(user_basics) can be 0 if the broadcaster does not have a subscription program.
+                def add_return_dict(dict_v, key, value):
+                    dict_v[key] = value
+                    return dict_v
+
                 db_session.execute(
-                    text("INSERT INTO subscribers(id, login, name) VALUES (:id, :login, :name)"),
-                    [basics.jsonify() for basics in user_basics],
+                    text("INSERT INTO subscribers(id, login, name, tier) VALUES (:id, :login, :name, :tier)"),
+                    [
+                        add_return_dict(basics.jsonify(), "tier", subscriber_ids_and_tier[basics.jsonify()["id"]])
+                        for basics in user_basics
+                    ],
                 )
 
             # hint to understand this query: "excluded" is a PostgreSQL keyword that referers
@@ -96,17 +96,19 @@ ON COMMIT DROP"""
                 text(
                     """
 WITH updated_users AS (
-    INSERT INTO "user"(id, login, name, subscriber)
-        SELECT id, login, name, TRUE FROM subscribers
+    INSERT INTO "user"(id, login, name, subscriber, tier)
+        SELECT id, login, name, TRUE, tier FROM subscribers
     ON CONFLICT (id) DO UPDATE SET
         login = excluded.login,
         name = excluded.name,
-        subscriber = TRUE
+        subscriber = TRUE,
+        tier = excluded.tier
     RETURNING id
 )
 UPDATE "user"
 SET
-    subscriber = FALSE
+    subscriber = FALSE,
+    tier = NULL
 WHERE
     id NOT IN (SELECT * FROM updated_users) AND
     subscriber IS TRUE"""
@@ -141,5 +143,6 @@ WHERE
         if not bot:
             return
 
+        ScheduleManager.execute_now(lambda: self.bot.action_queue.submit(self._update_subscribers))
         # every 10 minutes, add the subscribers update to the action queue
         ScheduleManager.execute_every(10 * 60, lambda: self.bot.action_queue.submit(self._update_subscribers))

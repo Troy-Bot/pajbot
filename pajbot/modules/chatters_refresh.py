@@ -12,7 +12,7 @@ from pajbot.utils import time_method
 log = logging.getLogger(__name__)
 
 
-class ChattersRefreshModule(BaseModule):
+class Loyalty(BaseModule):
     ID = __name__.split(".")[-1]
     NAME = "Loyalty"
     DESCRIPTION = "Earn points and build your watchtime while you watch your favourite streamer!"
