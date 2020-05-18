@@ -82,7 +82,6 @@ class Bot:
         ScheduleManager.init()
 
         DBManager.init(self.config["main"]["db"])
-        SongRequestQueueManager.init(self.streamer)
         HandlerManager.init_handlers()
 
         # redis
@@ -240,13 +239,14 @@ class Bot:
         self.commands = CommandManager(
             socket_manager=self.socket_manager, module_manager=self.module_manager, bot=self
         ).load()
+        streamlabs_token = config["streamlabs"].get("socket_access_token")
         self.websocket_manager = WebSocketManager(self)
         self.songrequest_websocket_manager = SongRequestWebSocketManager(self)
         self.streamlabs_manager = StreamLabsManager(streamlabs_token) if streamlabs_token else None
         self.pubsub_manager = PubSubManager(self, self.streamer_access_token_manager)
         self.songrequest_manager = SongrequestManager(self, self.config["youtube"]["api_key"])
         self.spotify_streamlabs_manager = SpotifyStreamLabsManager(self)
-        streamlabs_token = config["streamlabs"].get("socket_access_token")
+        SongRequestQueueManager.init(self.streamer)
         HandlerManager.trigger("on_managers_loaded")
 
         # Commitable managers
