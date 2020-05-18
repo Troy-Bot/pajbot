@@ -173,8 +173,12 @@ class RewardTTSModule(BaseModule):
     def enable(self, bot):
         if not bot:
             return
+        try:
+            self.pollyClient = boto3.Session().client("polly")
+        except:
+            log.warning("RewardTTSModule is enabled without .aws in the config")
+            return
 
-        self.pollyClient = boto3.Session().client("polly")
         if self.settings["redeemed_id"]:
             HandlerManager.add_handler("on_redeem", self.on_redeem)
         else:
