@@ -169,7 +169,7 @@ def init(app):
             (app.api_client_credentials, access_token)
         )
 
-        session["twitch_token"] = access_token
+        session["twitch_token"] = access_token.token
         session["twitch_token_expire"] = utils.now() + access_token.expires_in * 0.75
 
         with DBManager.create_session_scope(expire_on_commit=False) as db_session:
