@@ -543,9 +543,12 @@ class SongrequestManager:
 
         if not self.states["auto_play"]:
             if self.spotify_playing:
-                self.bot.spotify_player_api.play(self.bot.spotify_token_manager)
-                log.info("Resumed Spotify")
-                self.spotify_playing = False
+                if not self.bot.spotify_player_api:
+                    log.warning("Spotify Enabled but not setup!")
+                else:
+                    self.bot.spotify_player_api.play(self.bot.spotify_token_manager)
+                    log.info("Resumed Spotify")
+                    self.spotify_playing = False
             return False
 
         current_song = SongrequestQueue.get_current_song(self.db_session)
@@ -561,10 +564,13 @@ class SongrequestManager:
             self._play()
 
             if self.states["use_spotify"]:
-                is_playing = self.bot.spotify_player_api.state(self.bot.spotify_token_manager)[0]
-                if is_playing:
-                    self.bot.spotify_player_api.pause(self.bot.spotify_token_manager)
-                    self.spotify_playing = True
+                if not self.bot.spotify_player_api:
+                    log.warning("Spotify Enabled but not setup!")
+                else:
+                    is_playing = self.bot.spotify_player_api.state(self.bot.spotify_token_manager)[0]
+                    if is_playing:
+                        self.bot.spotify_player_api.pause(self.bot.spotify_token_manager)
+                        self.spotify_playing = True
 
             if not current_song.requested_by_id:
                 SongrequestQueue.create(
@@ -580,9 +586,12 @@ class SongrequestManager:
         SongRequestQueueManager.update_song_playing_id("")
         if self.states["use_spotify"]:
             if self.spotify_playing:
-                self.bot.spotify_player_api.play(self.bot.spotify_token_manager)
-                log.info("Resumed Spotify")
-                self.spotify_playing = False
+                if not self.bot.spotify_player_api:
+                    log.warning("Spotify Enabled but not setup!")
+                else:
+                    self.bot.spotify_player_api.play(self.bot.spotify_token_manager)
+                    log.info("Resumed Spotify")
+                    self.spotify_playing = False
         if self.video_showing:
             self._hide()
         return False
