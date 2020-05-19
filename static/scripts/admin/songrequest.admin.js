@@ -176,7 +176,7 @@ function onPlayerStateChange(event) {
         if (!play_on_stream && !paused) {
             socket.send(
                 JSON.stringify({
-                    event: 'RESUME',
+                    event: 'READY',
                 })
             );
         }

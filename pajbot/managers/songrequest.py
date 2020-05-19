@@ -173,6 +173,9 @@ class SongrequestManager:
         self.states[state] = value
         self._module_state()
 
+    def ready_function(self):
+        self.resume_function()
+
     def pause_function(self):
         if not self.states["enabled"]:
             raise ManagerDisabled()

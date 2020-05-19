@@ -86,7 +86,7 @@ class WebSocketServer:
                 if not WebSocket.by_salt(db_session, data["salt"]):
                     return False
 
-                manager.bot.songrequest_manager.resume_function()
+                manager.bot.songrequest_manager.ready_function()
                 return True
 
         factory = WebSocketServerFactory()

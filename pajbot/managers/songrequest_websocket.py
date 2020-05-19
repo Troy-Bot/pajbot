@@ -77,6 +77,7 @@ class SongRequestWebSocketServer:
                             "REQUEST": self._request,
                             "ADD_MEDIA": self._add_media,
                             "SET_BACKUP_PLAYLIST": self._set_backup_playlist,
+                            "READY": self._ready,
                         }
                         method = switcher.get(json_msg["event"].upper(), None)
                         try:
@@ -122,6 +123,17 @@ class SongRequestWebSocketServer:
 
                 try:
                     manager_ext.bot.songrequest_manager.resume_function()
+                except (ManagerDisabled, InvalidState):
+                    return 0, None
+
+                return 1, None
+
+            def _ready(self, db_session, data):
+                if not self.isAuthed:
+                    return 0, None
+
+                try:
+                    manager_ext.bot.songrequest_manager.ready_function()
                 except (ManagerDisabled, InvalidState):
                     return 0, None
 
