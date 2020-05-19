@@ -9,6 +9,7 @@ from pajbot.apiwrappers.twitch.helix import TwitchHelixAPI
 from pajbot.apiwrappers.twitch.badges import TwitchBadgesAPI
 from pajbot.apiwrappers.twitch.id import TwitchIDAPI
 from pajbot.apiwrappers.spotify import SpotifyPlayerAPI, SpotifyTokenAPI
+from pajbot.managers.songrequest_queue_manager import SongRequestQueueManager
 from pajbot.constants import VERSION
 from pajbot.utils import extend_version_if_possible
 
@@ -85,6 +86,8 @@ def init(args):
     if streamer_user_id is None:
         raise ValueError("The streamer login name you entered under [main] does not exist on twitch.")
     StreamHelper.init_streamer(streamer, streamer_user_id)
+
+    SongRequestQueueManager.init(streamer)
 
     try:
         download_logo(twitch_helix_api, streamer, streamer_user_id)
