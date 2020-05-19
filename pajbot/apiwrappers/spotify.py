@@ -1,5 +1,6 @@
 import logging
 import base64
+from json.decoder import JSONDecodeError
 
 from pajbot.apiwrappers.base import BaseAPI
 from pajbot.apiwrappers.authentication.token_manager import UserAccessTokenManager
@@ -31,7 +32,13 @@ class SpotifyPlayerAPI(BaseAPI):
             self.state(authentication)
         if not self.device_id:
             return False
-        self.put(endpoint="me/player", headers=headers, json={"device_ids": [self.device_id], "play": False})
+
+        try:
+            self.put(endpoint="me/player", headers=headers, json={"device_ids": [self.device_id], "play": False})
+        except JSONDecodeError:
+            pass
+
+        return True
 
     def play(self, authentication):
         headers = self.authentication(authentication)
@@ -43,7 +50,12 @@ class SpotifyPlayerAPI(BaseAPI):
         if not self.device_id:
             return False
 
-        self.put(endpoint="me/player", headers=headers, json={"device_ids": [self.device_id], "play": True})
+        try:
+            self.put(endpoint="me/player", headers=headers, json={"device_ids": [self.device_id], "play": True})
+        except JSONDecodeError:
+            pass
+
+        return True
 
     def state(self, authentication):
         headers = self.authentication(authentication)
