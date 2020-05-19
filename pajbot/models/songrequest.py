@@ -54,6 +54,10 @@ class SongrequestQueue(Base):
             "formatted_duration": self.formatted_duration,
         }
 
+    def purge(self, db_session):
+        SongRequestQueueManager.remove_song_id(self.id)
+        db_session.delete(self)
+
     @property
     def formatted_duration(self):
         m, s = divmod(self.duration, 60)
@@ -115,7 +119,7 @@ class SongrequestQueue(Base):
             skipped_by_id,
             self.skip_after,
         )
-        db_session.delete(self)
+        song.purge(db_session)
         return history
 
     @hybrid_property
@@ -181,8 +185,7 @@ class SongrequestQueue(Base):
     def pruge_videos(db_session, _video_id):
         all_songs = SongrequestQueue.all_by_video_id(db_session, _video_id)
         for song in all_songs:
-            SongRequestQueueManager.remove_song_id(song.id)
-            db_session.delete(song)
+            song.purge(db_session)
 
     @staticmethod
     def clear_backup_songs(db_session):

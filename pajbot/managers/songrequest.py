@@ -91,7 +91,7 @@ class SongrequestManager:
                 self.db_session, current_song.video_id, current_song.skip_after, current_song.requested_by_id, 0
             )
             SongRequestQueueManager.update_song_playing_id("")
-            self.db_session.delete(current_song)
+            current_song.purge(self.db_session)
             self.db_session.commit()
 
         import apiclient
@@ -121,7 +121,7 @@ class SongrequestManager:
                 0,
             )
             SongRequestQueueManager.update_song_playing_id("")
-            self.db_session.delete(self.current_song)
+            self.current_song.purge(self.db_session)
             self.db_session.commit()
         self.load_song()
 
@@ -309,7 +309,7 @@ class SongrequestManager:
             raise InvalidSong()
         playing = song.playing
 
-        self.db_session.delete(song)
+        song.purge(self.db_session)
         self.db_session.commit()
 
         self._playlist()
@@ -564,7 +564,7 @@ class SongrequestManager:
                 0,
             )
             SongRequestQueueManager.update_song_playing_id("")
-            self.db_session.delete(self.current_song)
+            self.current_song.purge(self.db_session)
             self.db_session.commit()
             self.load_song()
 
@@ -576,10 +576,8 @@ class SongrequestManager:
             if self.current_song.current_song_time > 5:
                 self.previous_queue = 0
                 histroy = self.current_song.to_histroy(self.db_session, skipped_by_id)
-                if not histroy:
-                    log.info("History not added because stream is offline!")
             else:
-                self.db_session.delete(self.current_song)
+                self.current_song.purge(self.db_session)
             self.db_session.commit()
             if not self.states["paused"]:
                 try:

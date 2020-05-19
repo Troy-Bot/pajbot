@@ -180,7 +180,7 @@ class SongrequestModule(BaseModule):
         current_pos = SongRequestQueueManager.get_id_index(requested_song.id) + 1
         if SongRequestQueueManager.song_playing_id:
             current_pos += 1
- 
+
         self.bot.say(
             self.settings["message_in_chat"].format(
                 user=source,
