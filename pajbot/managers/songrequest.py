@@ -128,6 +128,7 @@ class SongrequestManager:
     def load(self, module):
         self.module = None
         self.volume_function(module.settings["volume"])
+        self.max_song_length_function(module.settings["max_song_length"])
         self.use_spotify_state_function(module.settings["use_spotify"])
         try:
             self.set_backup_playlist(module.settings["backup_playlist_id"])
@@ -198,7 +199,11 @@ class SongrequestManager:
         self.db_session.commit()
 
         self.state("paused", True)
-        self.auto_skip_schedule.remove()
+        try:
+            self.auto_skip_schedule.remove()
+        except:
+            pass
+        self.auto_skip_salt = None
         self._pause()
 
     def resume_function(self):
@@ -394,13 +399,13 @@ class SongrequestManager:
         if not self.current_song:
             raise InvalidSong()
 
-        self.auto_skip_schedule.remove()
+        try:
+            self.auto_skip_schedule.remove()
+        except:
+            pass
         self.current_song.played_for = _time
         self.current_song.date_resumed = None
         self.db_session.commit()
-        self.auto_skip_salt = utils.salt_gen()
-        self.auto_skip_schedule = ScheduleManager.execute_delayed(self.current_song.time_left, self._auto_skip, args=[self.auto_skip_salt])
-        log.info(f"2. Auto skip in {self.current_song.time_left}")
         self._seek(_time)
 
     def favourite_function(self, database_id=None, hist_database_id=None, songinfo_database_id=None):
@@ -496,6 +501,22 @@ class SongrequestManager:
         except:
             raise InvalidVolume()
 
+    def max_song_length_function(self, max_song_length):
+        if not self.states["enabled"]:
+            raise ManagerDisabled()
+        try:
+            max_song_length = int(max_song_length)
+            if max_song_length >= 0:
+                self.max_song_length = max_song_length
+                if self.module:
+                    settings = self.module.settings
+                    settings["max_song_length"] = self.volume
+                    self.module.update_settings(**settings)
+            else:
+                raise ValueError
+        except:
+            raise ValueError
+
     def auto_play_state_function(self, value):
         if not self.states["enabled"]:
             raise ManagerDisabled()
@@ -561,7 +582,10 @@ class SongrequestManager:
                 self.db_session.delete(self.current_song)
             self.db_session.commit()
             if not self.states["paused"]:
-                self.auto_skip_schedule.remove()
+                try:
+                    self.auto_skip_schedule.remove()
+                except:
+                    pass
             self._playlist_history()
             self._stop_video()
         self._hide()

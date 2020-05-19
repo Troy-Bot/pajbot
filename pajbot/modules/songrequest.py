@@ -10,7 +10,7 @@ from pajbot.models.songrequest import SongrequestQueue
 from pajbot.models.command import Command
 from pajbot.modules import BaseModule
 from pajbot.modules import ModuleSetting
-from pajbot.exc import ManagerDisabled, UserNotFound, InvalidSong, InvalidVolume, SongBanned, InvalidPlaylist
+from pajbot.exc import ManagerDisabled, UserNotFound, InvalidSong, InvalidVolume, SongBanned
 from pajbot import utils
 
 log = logging.getLogger(__name__)
