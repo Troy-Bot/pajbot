@@ -77,6 +77,7 @@ class SpotifyTokenAPI(BaseAPI):
         self.client_secret = client_secret
         self.redirect_uri = redirect_uri
 
+    @property
     def authentication(self):
         return  {
             "Authorization": "Basic "
