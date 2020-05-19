@@ -177,13 +177,20 @@ class SongrequestModule(BaseModule):
             self.bot.whisper(source, "You are not in our database!")
             return False
 
-        current_pos = requested_song.queue(self.bot.songrequest_manager.db_session)
+        current_pos = requested_song.queue(self.bot.songrequest_manager.db_session) + 1
+        if current_pos != 1:
+            m, s = divmod(requested_song.playing_in(self.bot.songrequest_manager.db_session), 60)
+            m = int(m)
+            s = int(s)
+            playing_in = f"{m:02d}:{s:02d}"
+        else:
+            playing_in = "now"
 
         self.bot.say(
             self.settings["message_in_chat"].format(
                 user=source,
                 title=requested_song.song_info.title,
-                playing_in=requested_song.playing_in(self.bot.songrequest_manager.db_session) if current_pos != 0 else "now",
+                playing_in=playing_in,
                 current_pos=current_pos,
             )
         )
