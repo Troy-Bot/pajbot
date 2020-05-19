@@ -86,6 +86,7 @@ class SongrequestManager:
         self.db_session = DBManager.create_session()
         self.current_song = None
         current_song = SongrequestQueue.get_current_song(self.db_session)
+        log.info(current_song.id)
         if current_song:
             SongrequestQueue.create(
                 self.db_session, current_song.video_id, current_song.skip_after, current_song.requested_by_id, 0
