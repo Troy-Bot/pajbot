@@ -670,19 +670,29 @@ class PlaysoundModule(BaseModule):
             },
         )
 
-    def on_redeem(self, redeemer, redeemed_id, user_input):
-        if user_input is not None:
-            if redeemed_id == self.settings["redeem_id_playsounds"]:
-                self.play_sound(self.bot, redeemer, user_input)
+    def isReward(self, event):
+        for eventTag in event.tags:
+            if eventTag["key"] == "custom-reward-id":
+                return eventTag["value"]
+
+        return False
+
+    def on_message(self, source, message, event, emote_instances, **rest):
+        redeemed_id = self.isReward(event)
+        if not redeemed_id:
+            return
+
+        if redeemed_id == self.settings["redeem_id_playsounds"]:
+            self.play_sound(self.bot, source, message)
 
     def enable(self, bot):
         if not bot:
             return
 
-        HandlerManager.add_handler("on_redeem", self.on_redeem)
+        HandlerManager.add_handler("on_message", self.on_message)
 
     def disable(self, bot):
         if not bot:
             return
 
-        HandlerManager.remove_handler("on_redeem", self.on_redeem)
+        HandlerManager.remove_handler("on_message", self.on_message)
