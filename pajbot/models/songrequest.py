@@ -24,8 +24,8 @@ class SongrequestQueue(Base):
     requested_by_id = Column(INT, ForeignKey("user.id"), nullable=True)
     date_resumed = Column(UtcDateTime(), nullable=True)
     played_for = Column(REAL, default=0, nullable=False)
-    song_info = relationship("SongRequestSongInfo", foreign_keys=[video_id], lazy="joined")
-    requested_by = relationship("User", foreign_keys=[requested_by_id], lazy="joined")
+    song_info = relationship("SongRequestSongInfo", foreign_keys=[video_id])
+    requested_by = relationship("User", foreign_keys=[requested_by_id])
 
     def __init__(self, **options):
         super().__init__(**options)
@@ -239,9 +239,9 @@ class SongrequestHistory(Base):
     requested_by_id = Column(INT, ForeignKey("user.id"), nullable=True)
     skipped_by_id = Column(INT, ForeignKey("user.id"), nullable=True)
     skip_after = Column(INT, nullable=True)
-    song_info = relationship("SongRequestSongInfo", foreign_keys=[video_id], lazy="joined")
-    requested_by = relationship("User", foreign_keys=[requested_by_id], lazy="joined")
-    skipped_by = relationship("User", foreign_keys=[skipped_by_id], lazy="joined")
+    song_info = relationship("SongRequestSongInfo", foreign_keys=[video_id])
+    requested_by = relationship("User", foreign_keys=[requested_by_id])
+    skipped_by = relationship("User", foreign_keys=[skipped_by_id])
 
     def jsonify(self):
         return {
