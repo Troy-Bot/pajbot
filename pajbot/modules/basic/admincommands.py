@@ -39,11 +39,13 @@ class AdminCommandsModule(BaseModule):
     def mass_points(self, bot, source, message, **rest):
         if not message:
             return False
+
         msg_split = message.split(" ")
         if len(msg_split) < 1:
             # The user did not supply enough arguments
             bot.whisper(source, f"Usage: !{self.command_name} POINTS")
             return False
+
         try:
             num_points = int(msg_split[0])
         except (ValueError, TypeError):
@@ -67,6 +69,7 @@ INSERT INTO "user"(id, login, name, points)
     VALUES (:id, :login, :name, :add_points)
 ON CONFLICT (id) DO UPDATE SET
     points = "user".points + :add_points
+WHERE "user".ignored = False and "user".banned = False
             """
                 ),
                 update_values,
