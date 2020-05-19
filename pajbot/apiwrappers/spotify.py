@@ -62,8 +62,9 @@ class SpotifyPlayerAPI(BaseAPI):
         if not headers:
             return None, None, None
 
-        data = self.get(endpoint="me/player", headers=headers)
-        if data is None:
+        try:
+            data = self.get(endpoint="me/player", headers=headers)
+        except JSONDecodeError:
             return False, None, None
 
         self.device_id = data["device"]["id"]
