@@ -77,6 +77,12 @@ class SongrequestModule(BaseModule):
             default=False,
         ),
         ModuleSetting(
+            key="use_backup_playlist",
+            label="Use the backup playlist if no songs are playing | requires a backup playlist to be set",
+            type="boolean",
+            default=True,
+        ),
+        ModuleSetting(
             key="send_message_in_chat",
             label="Send a message in chat upon a song request",
             type="boolean",
@@ -233,7 +239,7 @@ class SongrequestModule(BaseModule):
 
     def get_next_song(self, bot, source, message, **rest):
         next_song = SongrequestQueue.get_next_song(self.bot.songrequest_manager.db_session)
-        if next_song:
+        if next_song and not (not self.settings["use_backup_playlist"] and not next_song.requested_by):
             m, s = divmod(next_song.queue_and_playing_in(self.bot.songrequest_manager.db_session)[1], 60)
             m = int(m)
             s = int(s)

@@ -130,6 +130,7 @@ class SongrequestManager:
         self.volume_function(module.settings["volume"])
         self.max_song_length_function(module.settings["max_song_length"])
         self.use_spotify_state_function(module.settings["use_spotify"])
+        self.backup_playlist_state_function(module.settings["use_backup_playlist"])
         try:
             self.set_backup_playlist(module.settings["backup_playlist_id"])
         except InvalidPlaylist:
@@ -216,7 +217,6 @@ class SongrequestManager:
         self.state("paused", False)
         self.auto_skip_salt = utils.salt_gen()
         self.auto_skip_schedule = ScheduleManager.execute_delayed(self.current_song.time_left, self._auto_skip, args=[self.auto_skip_salt])
-        log.info(f"1. Auto skip in {self.current_song.time_left}")
         self._resume()
 
     def show_function(self):
@@ -537,6 +537,11 @@ class SongrequestManager:
             raise ManagerDisabled()
 
         self.state("backup_playlist", value)
+        if self.module:
+            settings = self.module.settings
+            settings["use_backup_playlist"] = "on" if value else "off"
+            self.module.update_settings(**settings)
+
         if value and not self.current_song:
             self.load_song()
 
