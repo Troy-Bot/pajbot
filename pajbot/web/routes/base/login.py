@@ -171,7 +171,7 @@ def init(app):
         )
 
         session["twitch_token"] = access_token.access_token
-        session["twitch_token_expire"] = datetime.timestamp(utils.now() + timedelta(seconds=int(access_token.expires_in * 0.75)))
+        session["twitch_token_expire"] = datetime.timestamp(utils.now() + access_token.expires_in * 0.75)
 
         with DBManager.create_session_scope(expire_on_commit=False) as db_session:
             me = User.from_basics(db_session, user_basics)
