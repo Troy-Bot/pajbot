@@ -150,7 +150,7 @@ class Bot:
                 config["spotify"]["redirect_uri"]
             )
             self.spotify_token_manager = UserAccessTokenManager(
-                self.spotify_token_api, RedisManager.get(), config["spotify"]["username"], None, redis_prefix="spotify"
+                self.spotify_token_api, RedisManager.get(), config["spotify"]["username"], config["spotify"]["username"], redis_prefix="spotify"
             )
             log.info("Spotify Loaded")
 
