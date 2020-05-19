@@ -106,6 +106,7 @@ class SongrequestManager:
         self.youtube = build("youtube", "v3", developerKey=self.youtube_api_key, requestBuilder=build_request)
         self.module = None
         self.auto_skip_schedule = None
+        self.auto_skip_salt = None
         self.ready = False
 
     def disable(self):
@@ -182,7 +183,10 @@ class SongrequestManager:
 
         self.resume_function()
 
-    def _auto_skip(self):
+    def _auto_skip(self, salt):
+        if salt != self.auto_skip_salt:
+            return
+
         self.skip_function()
 
     def pause_function(self):
@@ -205,7 +209,8 @@ class SongrequestManager:
         self.db_session.commit()
 
         self.state("paused", False)
-        self.auto_skip_schedule = ScheduleManager.execute_delayed(self.current_song.time_left, self._auto_skip)
+        self.auto_skip_salt = utils.salt_gen()
+        self.auto_skip_schedule = ScheduleManager.execute_delayed(self.current_song.time_left, self._auto_skip, args=[self.auto_skip_salt])
         log.info(f"1. Auto skip in {self.current_song.time_left}")
         self._resume()
 
@@ -393,7 +398,8 @@ class SongrequestManager:
         self.current_song.played_for = _time
         self.current_song.date_resumed = None
         self.db_session.commit()
-        self.auto_skip_schedule = ScheduleManager.execute_delayed(self.current_song.time_left, self._auto_skip)
+        self.auto_skip_salt = utils.salt_gen()
+        self.auto_skip_schedule = ScheduleManager.execute_delayed(self.current_song.time_left, self._auto_skip, args=[self.auto_skip_salt])
         log.info(f"2. Auto skip in {self.current_song.time_left}")
         self._seek(_time)
 
@@ -560,6 +566,7 @@ class SongrequestManager:
             self._stop_video()
         self._hide()
         self.current_song = None
+        self.auto_skip_salt = None
 
         if not self.states["auto_play"]:
             if self.spotify_playing:

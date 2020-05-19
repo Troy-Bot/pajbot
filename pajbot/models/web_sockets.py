@@ -1,20 +1,14 @@
 import logging
 
-import random
-
 from sqlalchemy import TEXT, INT
 from sqlalchemy import Column
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import relationship
 
 from pajbot.managers.db import Base
+from pajbot import utils
 
 log = logging.getLogger(__name__)
-
-
-def salt_gen():
-    ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-    return "".join(random.choice(ALPHABET) for i in range(8))
 
 
 class WebSocket(Base):
@@ -30,7 +24,7 @@ class WebSocket(Base):
 
     def new_salt(self, db_session, salt=None):
         if not salt:
-            salt = salt_gen()
+            salt = utils.salt_gen(8)
         self.salt = salt
         db_session.merge(self)
         return self
@@ -41,7 +35,7 @@ class WebSocket(Base):
     @staticmethod
     def create(db_session, widget_id, salt=None):
         if not salt:
-            salt = salt_gen()
+            salt = utils.salt_gen(8)
         websocket = WebSocket(widget_id=widget_id, salt=salt)
         db_session.add(websocket)
         return websocket
