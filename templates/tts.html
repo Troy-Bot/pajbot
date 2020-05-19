@@ -1,0 +1,359 @@
+{% extends "layout.html" %}
+{% set active_page = 'tts' %}
+{% block title %}TTS{% endblock %}
+{% block body %}
+<div class="ui segment">
+<h2>TTS</h2>
+<p>Text to edit</p>
+<table class="ui collapsing single line compact table">
+    <thead>
+        <tr>
+            <th>Language</th>
+            <th>Name/ID</th>
+            <th>Gender</th>
+        </tr>
+    </thead>
+    <tbody>
+         <tr>
+            <td>Arabic (arb)</td>
+            <td>Zeina</td>
+            <td>Female</td>
+         </tr>
+         <tr>
+            <td>Chinese, Mandarin(cmn-CN)</td>
+            <td>Zhiyu</td>
+            <td>Female</td>
+         </tr>
+         <tr>
+            <td>Danish (da-DK)</td>
+            <td>
+               Naja
+               
+               Mads
+            </td>
+            <td>
+               Female
+               
+               Male
+            </td>
+         </tr>
+         <tr>
+            <td>Dutch (nl-NL)</td>
+            <td>
+               Lotte
+               
+               Ruben
+            </td>
+            <td>
+               Female
+               
+               Male
+            </td>
+         </tr>
+         <tr>
+            <td>English (Australian)(en-AU)</td>
+            <td>
+               Nicole
+               
+               Russell
+            </td>
+            <td>
+               Female
+               
+               Male
+            </td>
+         </tr>
+         <tr>
+            <td>English (British)(en-GB)</td>
+            <td>
+               Amy
+               
+               Emma
+               
+               Brian
+            </td>
+            <td>
+               Female
+               
+               Female
+               
+               Male
+            </td>
+         </tr>
+         <tr>
+            <td>English (Indian)(en-IN)</td>
+            <td>
+               Aditi* 
+               
+               Raveena
+            </td>
+            <td>
+               Female
+               
+               Female
+            </td>
+         </tr>
+         <tr>
+            <td>English (US) (en-US)</td>
+            <td>
+               Ivy
+               
+               
+               Joanna**
+               
+               Kendra
+               
+               Kimberly
+               
+               Salli
+               
+               Joey
+               
+               Justin
+               
+               Matthew**
+               
+            </td>
+            <td>
+               Female (child)
+               
+               Female
+               
+               Female
+               
+               Female
+               
+               Female
+               
+               Male
+               
+               Male (child)
+               
+               Male
+            </td>
+         </tr>
+         <tr>
+            <td>English (Welsh)(en-GB-WLS)</td>
+            <td>Geraint</td>
+            <td>Male</td>
+         </tr>
+         <tr>
+            <td>French (fr-FR)</td>
+            <td>
+               Céline/Celine
+               
+               Léa
+               
+               Mathieu
+            </td>
+            <td>
+               Female
+               
+               Female
+               
+               Male
+            </td>
+         </tr>
+         <tr>
+            <td>German (de-DE)</td>
+            <td>
+               Marlene
+               
+               Vicki
+               
+               Hans
+            </td>
+            <td>
+               Female
+               
+               Female
+               
+               Male
+            </td>               
+         </tr>
+         <tr>
+            <td>Hindi (hi-IN)</td>
+            <td>Aditi*</td>
+            <td>Female</td>
+         </tr>
+         <tr>
+            <td>Icelandic (is-IS)</td>
+            <td>
+               Dóra/Dora
+               
+               Karl
+            </td>
+            <td>
+               Female
+               
+               Male
+            </td>
+         </tr>
+         <tr>
+            <td>Italian (it-IT)</td>
+            <td>
+               Carla
+               
+               Bianca
+               
+               Giorgio
+            </td>
+            <td>
+               Female
+               
+               Female
+               
+               Male
+            </td>
+         </tr>
+         <tr>
+            <td>Japanese (ja-JP)</td>
+            <td>
+               Mizuki
+               
+               Takumi
+            </td>
+            <td>
+               Female
+               
+               Male
+            </td>
+         </tr>
+         <tr>
+            <td>Korean (ko-KR)</td>
+            <td>Seoyeon</td>
+            <td>Female</td>
+         </tr>
+         <tr>
+            <td>Norwegian (nb-NO)</td>
+            <td>Liv</td>
+            <td>Female</td>
+         </tr>
+         <tr>
+            <td>Polish (pl-PL)</td>
+            <td>
+               Ewa
+               
+               Maja
+               
+               Jacek
+               
+               Jan
+            </td>
+            <td>
+               Female
+               
+               Female
+               
+               Male
+               
+               Male
+            </td>
+         </tr>
+         <tr>
+            <td>Portuguese (Brazilian)(pt-BR)</td>
+            <td>
+               Camila
+               
+               Vitória/Vitoria
+               
+               Ricardo
+            </td>
+            <td>
+               Female
+               
+               Female
+               
+               Male
+            </td>
+         </tr>
+         <tr>
+            <td>Portuguese (European)(pt-PT)</td>
+            <td>
+               Inês/Ines
+               
+               Cristiano
+            </td>
+            <td>
+               Female
+               
+               Male
+            </td>
+         </tr>
+         <tr>
+            <td>Romanian (ro-RO)</td>
+            <td>Carmen</td>
+            <td>Female</td>
+         </tr>
+         <tr>
+            <td>Russian (ru-RU)</td>
+            <td>
+               Tatyana
+               
+               Maxim
+            </td>
+            <td>
+               Female
+               
+               Male
+            </td>
+         </tr>
+         <tr>
+            <td>Spanish (European)(es-ES)</td>
+            <td>
+               Conchita
+               
+               Lucia
+               
+               Enrique
+            </td>
+            <td>
+               Female
+               
+               Female
+               
+               Male
+            </td>
+         </tr>
+         <tr>
+            <td>Spanish (Mexican)(es-MX)</td>
+            <td>Mia</td>
+            <td>Female</td>
+         </tr>
+         <tr>
+            <td>US Spanish (es-US)</td>
+            <td>
+               Lupe**
+               
+               Penélope/Penelope
+               
+               Miguel
+            </td>
+            <td>
+               Female
+               
+               Female
+               
+               Male
+            </td>
+         </tr>
+         <tr>
+            <td>Swedish (sv-SE)</td>
+            <td>Astrid</td>
+            <td>Female</td>
+         </tr>
+         <tr>
+            <td>Turkish (tr-TR)</td>
+            <td>Filiz</td>
+            <td>Female</td>
+         </tr>
+         <tr>
+            <td>Welsh (cy-GB)</td>
+            <td>Gwyneth</td>
+            <td>Female</td>
+         </tr>
+      </tbody>
+    </tbody>
+</table>
+</div>
+{% endblock %}

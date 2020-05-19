@@ -24,6 +24,8 @@ def init(app):
         nav_bar_header.append(MenuItem("/playsounds", "user_playsounds", "Playsounds"))
     if "songrequest" in app.bot_modules:
         nav_bar_header.append(MenuItem("/songrequest", "songrequest", "Songrequest"))
+    if "tts" in app.bot_modules:
+        nav_bar_header.append(MenuItem("/tts", "tts", "TTS"))
     nav_bar_admin_header = []
     nav_bar_admin_header.append(MenuItem("/", "home", "Home"))
     nav_bar_admin_header.append(MenuItem("/admin", "admin_home", "Admin Home"))
