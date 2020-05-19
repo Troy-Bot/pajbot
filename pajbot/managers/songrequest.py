@@ -608,8 +608,6 @@ class SongrequestManager:
             current_song.played_for = 0
             current_song.date_resumed = utils.now()
             self.current_song = current_song
-            self.db_session.expunge(self.current_song)
-
             self._volume()
             self._play()
 
