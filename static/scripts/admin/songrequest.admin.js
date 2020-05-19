@@ -238,14 +238,14 @@ function current_song(data, update = true) {
                 Math.floor(new Date().getTime() / 1000) -
                 parseFloat(data['current_timestamp']) +
                 0.5;
-            console.log(data['current_song']['current_song_time']);
-            player.loadVideoById(
-                data['current_song']['song_info']['video_id'],
-                Math.round(
-                    data['current_song']['current_song_time'] + time_diff,
-                    2
-                )
-            );
+            var start_time = Math.round(
+                data['current_song']['current_song_time'] + time_diff,
+                2
+            )
+            player.loadVideoById({
+                'videoId': data['current_song']['song_info']['video_id'],
+                'startSeconds': start_time > 0 ? start_time : 0
+            });
         }
         $('#ban_current_video').removeClass('disabled');
         $('#favourite_current_video').removeClass('disabled');
