@@ -92,7 +92,7 @@ class SpotifyTokenAPI(BaseAPI):
 
     @property
     def authentication(self):
-        return  {
+        return {
             "Authorization": "Basic "
             + str(base64.b64encode(f"{self.client_id}:{self.client_secret}".encode("utf-8")), "utf-8")
         }

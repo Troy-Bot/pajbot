@@ -62,7 +62,12 @@ def init(args):
     twitch_helix_api = TwitchHelixAPI(RedisManager.get(), app_token_manager)
     twitch_badges_api = TwitchBadgesAPI(RedisManager.get())
     spotify_player_api = SpotifyPlayerAPI(RedisManager.get())
-    spotify_token_api = SpotifyTokenAPI(RedisManager.get(), config["spotify"]["client_id"], config["spotify"]["client_secret"], config["spotify"]["redirect_uri"])
+    spotify_token_api = SpotifyTokenAPI(
+        RedisManager.get(),
+        config["spotify"]["client_id"],
+        config["spotify"]["client_secret"],
+        config["spotify"]["redirect_uri"],
+    )
 
     app.api_client_credentials = api_client_credentials
     app.twitch_id_api = twitch_id_api
@@ -150,7 +155,11 @@ def init(args):
             "domain": config["web"]["domain"],
             "deck_tab_images": config.getboolean("web", "deck_tab_images"),
             "websocket": {"host": config["websocket"].get("host", f"wss://{config['web']['domain']}/clrsocket")},
-            "songrequestWS": {"host": config["songrequest-websocket"].get("host", f"wss://{config['web']['domain']}/songrequest_websocket")},
+            "songrequestWS": {
+                "host": config["songrequest-websocket"].get(
+                    "host", f"wss://{config['web']['domain']}/songrequest_websocket"
+                )
+            },
         },
         "streamer": {"name": config["web"]["streamer_name"], "full_name": config["main"]["streamer"]},
         "modules": app.bot_modules,

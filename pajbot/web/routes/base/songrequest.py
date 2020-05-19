@@ -6,6 +6,7 @@ from pajbot.managers.db import DBManager
 from pajbot.managers.songrequest_queue_manager import SongRequestQueueManager
 from pajbot.models.songrequest import SongrequestQueue, SongrequestHistory
 from pajbot.modules import SongrequestModule
+
 log = logging.getLogger(__name__)
 
 
@@ -18,7 +19,9 @@ def init(app):
             songs_queue = []
             SongRequestQueueManager.force_reload()
             current_song = SongrequestQueue.get_current_song(db_session)
-            queue = ([current_song] if current_song else []) + SongrequestQueue.get_playlist(db_session, 49 if current_song else 50, False)
+            queue = ([current_song] if current_song else []) + SongrequestQueue.get_playlist(
+                db_session, 49 if current_song else 50, False
+            )
 
             if len(queue) < 50 and SongrequestModule.module_settings()["use_backup_playlist"]:
                 queue += SongrequestQueue.get_backup_playlist(db_session, 50 - len(queue), False)
@@ -58,5 +61,7 @@ def init(app):
                 songs_history.append(jsonify)
 
             return render_template(
-                "songrequest.html", songs_queue=songs_queue if SongrequestModule.is_enabled() else [], songs_history=songs_history
+                "songrequest.html",
+                songs_queue=songs_queue if SongrequestModule.is_enabled() else [],
+                songs_history=songs_history,
             )

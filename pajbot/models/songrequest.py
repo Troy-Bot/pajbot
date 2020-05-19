@@ -154,7 +154,10 @@ class SongrequestQueue(Base):
     @staticmethod
     def get_current_song(db_session):
         return (
-            db_session.query(SongrequestQueue).populate_existing().filter_by(id=SongRequestQueueManager.song_playing_id).one_or_none()
+            db_session.query(SongrequestQueue)
+            .populate_existing()
+            .filter_by(id=SongRequestQueueManager.song_playing_id)
+            .one_or_none()
             if SongRequestQueueManager.song_playing_id
             else None
         )
@@ -319,7 +322,13 @@ class SongrequestHistory(Base):
 
     @staticmethod
     def get_previous(db_session, position):
-        songs = db_session.query(SongrequestHistory).populate_existing().order_by(SongrequestHistory.id.desc()).limit(position + 1).all()
+        songs = (
+            db_session.query(SongrequestHistory)
+            .populate_existing()
+            .order_by(SongrequestHistory.id.desc())
+            .limit(position + 1)
+            .all()
+        )
         if len(songs) == position + 1:
             return songs[position]
 
@@ -332,7 +341,13 @@ class SongrequestHistory(Base):
 
     @staticmethod
     def get_list(db_session, size):
-        return db_session.query(SongrequestHistory).populate_existing().order_by(SongrequestHistory.id.desc()).limit(size).all()
+        return (
+            db_session.query(SongrequestHistory)
+            .populate_existing()
+            .order_by(SongrequestHistory.id.desc())
+            .limit(size)
+            .all()
+        )
 
     @staticmethod
     def from_id(db_session, _id):
@@ -425,10 +440,20 @@ class SongRequestSongInfo(Base):
 
     @staticmethod
     def get_banned(db_session):
-        return db_session.query(SongRequestSongInfo).populate_existing().filter_by(banned=True).order_by(SongRequestSongInfo.video_id).all()
+        return (
+            db_session.query(SongRequestSongInfo)
+            .populate_existing()
+            .filter_by(banned=True)
+            .order_by(SongRequestSongInfo.video_id)
+            .all()
+        )
 
     @staticmethod
     def get_favourite(db_session):
         return (
-            db_session.query(SongRequestSongInfo).populate_existing().filter_by(favourite=True).order_by(SongRequestSongInfo.video_id).all()
+            db_session.query(SongRequestSongInfo)
+            .populate_existing()
+            .filter_by(favourite=True)
+            .order_by(SongRequestSongInfo.video_id)
+            .all()
         )

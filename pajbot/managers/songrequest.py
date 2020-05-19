@@ -216,7 +216,9 @@ class SongrequestManager:
 
         self.state("paused", False)
         self.auto_skip_salt = utils.salt_gen()
-        self.auto_skip_schedule = ScheduleManager.execute_delayed(self.current_song.time_left, self._auto_skip, args=[self.auto_skip_salt])
+        self.auto_skip_schedule = ScheduleManager.execute_delayed(
+            self.current_song.time_left, self._auto_skip, args=[self.auto_skip_salt]
+        )
         self._resume()
 
     def show_function(self):

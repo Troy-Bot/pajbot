@@ -120,18 +120,25 @@ class Taxation(BaseModule):
         with DBManager.create_session_scope() as db_session:
             users_active = (
                 db_session.query(User)
-                .filter(and_(
-                    User.last_active > after_date,
-                    User.moderator.isnot(False),
-                    User.ignored.isnot(False),
-                    User.banned.isnot(False),
-                    User.num_lines >= self.settings["min_lines"])
-                ).all()
+                .filter(
+                    and_(
+                        User.last_active > after_date,
+                        User.moderator.isnot(False),
+                        User.ignored.isnot(False),
+                        User.banned.isnot(False),
+                        User.num_lines >= self.settings["min_lines"],
+                    )
+                )
+                .all()
             )  # ignore the mods or users who are ignored/banned by the bot
 
             users_dict = {}
             for user in users_active:
-                users_dict[user.id] = {"user": user, "redemption_costs": 0, "days_redeemed": [False for x in range(process_time)]}
+                users_dict[user.id] = {
+                    "user": user,
+                    "redemption_costs": 0,
+                    "days_redeemed": [False for x in range(process_time)],
+                }
 
             json_data = {
                 "request": "channel",
@@ -190,7 +197,7 @@ class Taxation(BaseModule):
 
                 number_of_timeouts = 0
 
-                for user_dict_obj in random.sample(users_to_timeout, 300): # Hard limit of 300 timeouts.
+                for user_dict_obj in random.sample(users_to_timeout, 300):  # Hard limit of 300 timeouts.
                     user = user_dict_obj["user"]
                     timeout = check_user_timeouts[user.id]
                     if timeout is not None:
@@ -243,7 +250,10 @@ class Taxation(BaseModule):
                 second_place_users = [user.name for user in second_list]
                 if top_val > 0:
                     action_messages.append(
-                        f"Awarded {', '.join(top_users)} {self.settings['number_points_tax']} points for paying the most tax at {top_val} channel points " + f"Second place was {', '.join(second_place_users)} for paying {second_val} channel points" if second_val > 0 else ""
+                        f"Awarded {', '.join(top_users)} {self.settings['number_points_tax']} points for paying the most tax at {top_val} channel points "
+                        + f"Second place was {', '.join(second_place_users)} for paying {second_val} channel points"
+                        if second_val > 0
+                        else ""
                     )
 
             self.bot.me(" ".join(action_messages))

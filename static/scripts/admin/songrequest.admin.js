@@ -133,7 +133,7 @@ function onYouTubeIframeAPIReady() {
 var first_run = true;
 function onPlayerReady(event) {
     if (first_run) {
-        first_run=false;
+        first_run = false;
         connect_to_ws();
     }
     player.playVideo();
@@ -244,8 +244,8 @@ function current_song(data, update = true) {
             );
             console.log(start_time);
             player.loadVideoById({
-                'videoId': data['current_song']['song_info']['video_id'],
-                'startSeconds': start_time > 0 ? start_time : 0.01
+                videoId: data['current_song']['song_info']['video_id'],
+                startSeconds: start_time > 0 ? start_time : 0.01,
             });
         }
         $('#ban_current_video').removeClass('disabled');

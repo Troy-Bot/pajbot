@@ -42,7 +42,7 @@ def init(app):
             "client_id": app.bot_config["spotify"]["client_id"],
             "redirect_uri": app.bot_config["spotify"]["redirect_uri"],
             "response_type": "code",
-            "scope": " ".join(scopes)
+            "scope": " ".join(scopes),
         }
 
         authorize_url = "https://accounts.spotify.com/authorize?" + urllib.parse.urlencode(params)
