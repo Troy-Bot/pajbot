@@ -100,7 +100,7 @@ class SpotifyTokenAPI(BaseAPI):
         return UserAccessToken.from_api_response(response)
 
     def refresh_user_access_token(self, refresh_token):
-        headers = self.authentication()
+        headers = self.authentication
         data = {"grant_type": "refresh_token", "refresh_token": refresh_token}
         response = self.post("/api/token", data=data, headers=headers)
 
