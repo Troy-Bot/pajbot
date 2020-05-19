@@ -10,6 +10,7 @@ import regex as re
 from pajbot.models.songrequest import SongrequestQueue, SongRequestSongInfo, SongrequestHistory
 from pajbot.models.user import User
 from pajbot.managers.songrequest_queue_manager import SongRequestQueueManager
+from pajbot.managers.schedule import ScheduleManager
 from pajbot.managers.db import DBManager
 from pajbot.exc import (
     ManagerDisabled,
@@ -104,6 +105,8 @@ class SongrequestManager:
 
         self.youtube = build("youtube", "v3", developerKey=self.youtube_api_key, requestBuilder=build_request)
         self.module = None
+        self.auto_skip_schedule = None
+        self.ready = False
 
     def disable(self):
         self.states = self.default_states
@@ -174,7 +177,13 @@ class SongrequestManager:
         self._module_state()
 
     def ready_function(self):
+        if self.ready:
+            return
+
         self.resume_function()
+
+    def _auto_skip(self):
+        self.skip_function()
 
     def pause_function(self):
         if not self.states["enabled"]:
@@ -185,6 +194,7 @@ class SongrequestManager:
         self.db_session.commit()
 
         self.state("paused", True)
+        self.auto_skip_schedule.remove()
         self._pause()
 
     def resume_function(self):
@@ -195,6 +205,7 @@ class SongrequestManager:
         self.db_session.commit()
 
         self.state("paused", False)
+        self.auto_skip_schedule = ScheduleManager.execute_delayed(self.current_song.time_left, self._auto_skip)
         self._resume()
 
     def show_function(self):
@@ -377,9 +388,11 @@ class SongrequestManager:
         if not self.current_song:
             raise InvalidSong()
 
+        self.auto_skip_schedule.remove()
         self.current_song.played_for = _time
         self.current_song.date_resumed = None
         self.db_session.commit()
+        self.auto_skip_schedule = ScheduleManager.execute_delayed(self.current_song.time_left, self._auto_skip)
         self._seek(_time)
 
     def favourite_function(self, database_id=None, hist_database_id=None, songinfo_database_id=None):
@@ -539,6 +552,7 @@ class SongrequestManager:
             else:
                 self.db_session.delete(self.current_song)
             self.db_session.commit()
+            self.auto_skip_schedule.remove()
             self._playlist_history()
             self._stop_video()
         self._hide()
