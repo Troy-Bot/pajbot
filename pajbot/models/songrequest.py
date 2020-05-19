@@ -84,7 +84,8 @@ class SongrequestQueue(Base):
 
     @hybrid_property
     def time_left(self):
-        return self.duration - self.current_song_time
+        time_left = self.duration - self.current_song_time
+        return time_left if time_left > 0 else 0
 
     @hybrid_property
     def current_song_time(self):
