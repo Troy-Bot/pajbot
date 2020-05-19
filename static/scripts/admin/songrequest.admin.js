@@ -31,7 +31,7 @@ function connect_to_ws() {
         socket.send(
             JSON.stringify({
                 event: 'AUTH',
-                data: { access_token: auth.split(';')[1].split('&')[0] },
+                data: { access_token: auth },
             })
         );
     };
