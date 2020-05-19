@@ -43,14 +43,14 @@ class AdminCommandsModule(BaseModule):
         msg_split = message.split(" ")
         if len(msg_split) < 1:
             # The user did not supply enough arguments
-            bot.whisper(source, f"Usage: !{self.command_name} POINTS")
+            bot.whisper(source, f"Usage: !masspoints POINTS")
             return False
 
         try:
             num_points = int(msg_split[0])
         except (ValueError, TypeError):
             # The user did not specify a valid integer for points
-            bot.whisper(source, f"Invalid amount of points. Usage: !{self.command_name} USERNAME POINTS")
+            bot.whisper(source, f"Invalid amount of points. Usage: !masspoints USERNAME POINTS")
             return False
 
         chatter_logins = self.bot.twitch_tmi_api.get_chatter_logins_by_login(self.bot.streamer)
@@ -83,7 +83,7 @@ WHERE "user".ignored = False and "user".banned = False
         msg_split = message.split(" ")
         if len(msg_split) < 2:
             # The user did not supply enough arguments
-            bot.whisper(source, f"Usage: !{self.command_name} USERNAME POINTS")
+            bot.whisper(source, f"Usage: !editpoints USERNAME POINTS")
             return False
 
         username_input = msg_split[0]
@@ -92,7 +92,7 @@ WHERE "user".ignored = False and "user".banned = False
             num_points = int(msg_split[1])
         except (ValueError, TypeError):
             # The user did not specify a valid integer for points
-            bot.whisper(source, f"Invalid amount of points. Usage: !{self.command_name} USERNAME POINTS")
+            bot.whisper(source, f"Invalid amount of points. Usage: !editpoints USERNAME POINTS")
             return False
 
         with DBManager.create_session_scope() as db_session:
@@ -115,7 +115,7 @@ WHERE "user".ignored = False and "user".banned = False
         msg_split = message.split(" ")
         if len(msg_split) < 2:
             # The user did not supply enough arguments
-            bot.whisper(source, f"Usage: !{self.command_name} USERNAME POINTS")
+            bot.whisper(source, f"Usage: !setpoints USERNAME POINTS")
             return False
 
         username = msg_split[0]
@@ -127,7 +127,7 @@ WHERE "user".ignored = False and "user".banned = False
             num_points = int(msg_split[1])
         except (ValueError, TypeError):
             # The user did not specify a valid integer for points
-            bot.whisper(source, f"Invalid amount of points. Usage: !{self.command_name} USERNAME POINTS")
+            bot.whisper(source, f"Invalid amount of points. Usage: !setpoints USERNAME POINTS")
             return False
 
         with DBManager.create_session_scope() as db_session:
