@@ -196,8 +196,19 @@ class SongrequestQueue(Base):
 
     @staticmethod
     def get_playlist(db_session, limit=None, as_json=True):
-        queued_song_ids = SongRequestQueueManager.get_next_songs(limit=limit, queue="song-queue")
-        queued_unordered_songs = SongrequestQueue.from_list_id(db_session, queued_song_ids)
+        while True:
+            queued_song_ids = SongRequestQueueManager.get_next_songs(limit=limit, queue="song-queue")
+            if not queued_song_ids:
+                return []
+
+            queued_unordered_songs = SongrequestQueue.from_list_id(db_session, queued_song_ids)
+            if len(queued_song_ids) == len(queued_unordered_songs):
+                break
+            song_ids = [song.id for song in queued_unordered_songs]
+            for song_id in queued_song_ids:
+                if song_id not in song_ids:
+                    SongRequestQueueManager.remove_song_id(song_id)
+
         queued_songs = SongrequestQueue.sort(queued_song_ids, queued_unordered_songs)
         if not as_json:
             return queued_songs
@@ -209,8 +220,19 @@ class SongrequestQueue(Base):
 
     @staticmethod
     def get_backup_playlist(db_session, limit=None, as_json=True):
-        queued_song_ids = SongRequestQueueManager.get_next_songs(limit=limit, queue="backup-song-queue")
-        queued_unordered_songs = SongrequestQueue.from_list_id(db_session, queued_song_ids)
+        while True:
+            queued_song_ids = SongRequestQueueManager.get_next_songs(limit=limit, queue="backup-song-queue")
+            if not queued_song_ids:
+                return []
+
+            queued_unordered_songs = SongrequestQueue.from_list_id(db_session, queued_song_ids)
+            if len(queued_song_ids) == len(queued_unordered_songs):
+                break
+            song_ids = [song.id for song in queued_unordered_songs]
+            for song_id in queued_song_ids:
+                if song_id not in song_ids:
+                    SongRequestQueueManager.remove_song_id(song_id)
+
         queued_songs = SongrequestQueue.sort(queued_song_ids, queued_unordered_songs)
         if not as_json:
             return queued_songs

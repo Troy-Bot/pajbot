@@ -18,11 +18,12 @@ def init(app):
             track_number = 1
             songs_queue = []
             SongRequestQueueManager.force_reload()
-            queue_ids = SongRequestQueueManager.get_next_songs(50)
             current_song = SongrequestQueue.get_current_song(db_session)
-            queue = ([current_song] if current_song else []) + SongrequestQueue.sort(
-                queue_ids, SongrequestQueue.from_list_id(db_session, queue_ids)
-            )
+            queue = ([current_song] if current_song else []) + SongrequestQueue.get_playlist(db_session, 49 if current_song else 50, False)
+
+            if len(queue) < 50:
+                queue += SongrequestQueue.get_backup_playlist(db_session, 50 - len(queue), False)
+
             for song in queue:
                 if song.song_info is None:
                     continue
