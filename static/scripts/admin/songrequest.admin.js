@@ -241,7 +241,8 @@ function current_song(data, update = true) {
             var start_time = Math.round(
                 data['current_song']['current_song_time'] + time_diff,
                 2
-            )
+            );
+            console.log(start_time);
             player.loadVideoById({
                 'videoId': data['current_song']['song_info']['video_id'],
                 'startSeconds': start_time > 0 ? start_time : 0
