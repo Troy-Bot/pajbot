@@ -243,3 +243,9 @@ def init(app):
         session.pop("user", None)
         session.pop("twitch_token_expire", None)
         session.pop("twitch_token", None)
+
+        return_to = request.args.get("returnTo", "/")
+        if return_to.startswith("/admin"):
+            return_to = "/"
+
+        return redirect(return_to)
