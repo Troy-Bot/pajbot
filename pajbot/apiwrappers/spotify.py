@@ -86,7 +86,7 @@ class SpotifyTokenAPI(BaseAPI):
     def get_user_access_token(self, code):
         headers = self.authentication
         data = {"grant_type": "authorization_code", "code": code, "redirect_uri": self.redirect_uri}
-        response = self.post("/api/token", data=data, headers=headers, base_url="https://accounts.spotify.com")
+        response = self.post("/api/token", data=data, headers=headers)
 
         # {
         # "access_token": "NgCXRK...MzYjw",
@@ -101,7 +101,7 @@ class SpotifyTokenAPI(BaseAPI):
     def refresh_user_access_token(self, refresh_token):
         headers = self.authentication()
         data = {"grant_type": "refresh_token", "refresh_token": refresh_token}
-        response = self.post("/api/token", data=data, headers=headers, base_url="https://accounts.spotify.com")
+        response = self.post("/api/token", data=data, headers=headers)
 
         # {
         # "access_token": "NgA6ZcYI...ixn8bUQ",
