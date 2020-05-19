@@ -206,7 +206,7 @@ class SongrequestManager:
 
         self.state("paused", False)
         self.auto_skip_schedule = ScheduleManager.execute_delayed(self.current_song.time_left, self._auto_skip)
-        log.info(f"Auto skip in {self.current_song.time_left}")
+        log.info(f"1. Auto skip in {self.current_song.time_left}")
         self._resume()
 
     def show_function(self):
@@ -394,7 +394,7 @@ class SongrequestManager:
         self.current_song.date_resumed = None
         self.db_session.commit()
         self.auto_skip_schedule = ScheduleManager.execute_delayed(self.current_song.time_left, self._auto_skip)
-        log.info(f"Auto skip in {self.current_song.time_left}")
+        log.info(f"2. Auto skip in {self.current_song.time_left}")
         self._seek(_time)
 
     def favourite_function(self, database_id=None, hist_database_id=None, songinfo_database_id=None):
@@ -554,7 +554,8 @@ class SongrequestManager:
             else:
                 self.db_session.delete(self.current_song)
             self.db_session.commit()
-            self.auto_skip_schedule.remove()
+            if not self.states["paused"]:
+                self.auto_skip_schedule.remove()
             self._playlist_history()
             self._stop_video()
         self._hide()
