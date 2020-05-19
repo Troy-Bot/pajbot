@@ -194,11 +194,6 @@ class SongrequestManager:
         if not self.states["enabled"]:
             raise ManagerDisabled()
 
-        if self.states["paused"]:
-            self._pause()
-            return
-
-
         self.current_song.played_for += (utils.now() - self.current_song.date_resumed).total_seconds()
         self.current_song.date_resumed = None
         self.db_session.commit()
@@ -214,10 +209,6 @@ class SongrequestManager:
     def resume_function(self):
         if not self.states["enabled"]:
             raise ManagerDisabled()
-
-        if not self.states["paused"]:
-            self._resume()
-            return
 
         self.current_song.date_resumed = utils.now()
         self.db_session.commit()
