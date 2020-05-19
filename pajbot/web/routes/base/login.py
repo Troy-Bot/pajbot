@@ -121,6 +121,17 @@ def init(app):
         def login_error(code, detail_msg=None):
             return render_template("login_error.html", return_to=return_to, detail_msg=detail_msg), code
 
+        csrf_token = state.get("csrf_token", None)
+        if csrf_token is None:
+            return login_error(400, "CSRF token missing from state")
+
+        csrf_token_in_session = session.pop("csrf_token", None)
+        if csrf_token_in_session is None:
+            return login_error(400, "No CSRF token in session cookie")
+
+        if csrf_token != csrf_token_in_session:
+            return login_error(403, "CSRF tokens don't match")
+
         # determine if we got ?code= or ?error= (success or not)
         # https://tools.ietf.org/html/rfc6749#section-4.1.2
         if "error" in request.args:
@@ -191,17 +202,6 @@ def init(app):
 
         def login_error(code, detail_msg=None):
             return render_template("login_error.html", return_to=return_to, detail_msg=detail_msg), code
-
-        csrf_token = request.args.get("csrf_token", None)
-        if csrf_token is None:
-            return login_error(400, "CSRF token missing from state")
-
-        csrf_token_in_session = session.pop("spotify_csrf_token", None)
-        if csrf_token_in_session is None:
-            return login_error(400, "No CSRF token in session cookie")
-
-        if csrf_token != csrf_token_in_session:
-            return login_error(403, "CSRF tokens don't match")
 
         # determine if we got ?code= or ?error= (success or not)
         # https://tools.ietf.org/html/rfc6749#section-4.1.2
