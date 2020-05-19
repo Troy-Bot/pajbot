@@ -79,11 +79,11 @@ class SongRequestWebSocketServer:
                             "SET_BACKUP_PLAYLIST": self._set_backup_playlist,
                         }
                         method = switcher.get(json_msg["event"].upper(), None)
-                        if not manager_ext.bot.songrequest_manager:
+                        try:
+                            if not manager_ext.bot.songrequest_manager.states["enabled"]:
+                                return
+                        except AttributeError:
                             self._close_conn()
-                            return
-
-                        if not manager_ext.bot.songrequest_manager.states["enabled"]:
                             return
 
                         if not method:
