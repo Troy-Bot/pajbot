@@ -41,15 +41,12 @@ def init(app):
         csrf_token = base64.b64encode(os.urandom(64)).decode("utf-8")
         session["spotify_csrf_token"] = csrf_token
 
-        state = {"csrf_token": csrf_token, "return_to": request.args.get("returnTo", None)}
-
-
         params = {
             "client_id": app.bot_config["spotify"]["client_id"],
             "redirect_uri": app.bot_config["spotify"]["redirect_uri"],
             "response_type": "code",
             "scope": " ".join(scopes),
-            "state": json.dumps(state),
+            "csrf_token": csrf_token,
         }
 
         authorize_url = "https://accounts.spotify.com/authorize?" + urllib.parse.urlencode(params)
@@ -205,33 +202,16 @@ def init(app):
 
     @app.route("/login/spotify_auth")
     def spotify_authorized():
-        # First, validate state with CSRF token
-        # (CSRF token from request parameter must match token from session)
-        state_str = request.args.get("state", None)
-
-        if state_str is None:
-            return render_template("login_error.html", return_to="/", detail_msg="State parameter missing"), 400
-
-        try:
-            state = json.loads(state_str)
-        except JSONDecodeError:
-            return render_template("login_error.html", return_to="/", detail_msg="State parameter not valid JSON"), 400
-
-        # we now have a valid state object, we can send the user back to the place they came from
-        return_to = state.get("return_to", None)
-        if return_to is None:
-            # either not present in the JSON at all, or { "return_to": null } (which is the case when you
-            # e.g. access /bot_login or /streamer_login directly)
-            return_to = "/"
+        return_to = "/"
 
         def login_error(code, detail_msg=None):
             return render_template("login_error.html", return_to=return_to, detail_msg=detail_msg), code
 
-        csrf_token = state.get("spotify_csrf_token", None)
+        csrf_token = request.args.get("csrf_token", None)
         if csrf_token is None:
             return login_error(400, "CSRF token missing from state")
 
-        csrf_token_in_session = session.pop("csrf_token", None)
+        csrf_token_in_session = session.pop("spotify_csrf_token", None)
         if csrf_token_in_session is None:
             return login_error(400, "No CSRF token in session cookie")
 
