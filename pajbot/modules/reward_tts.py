@@ -155,15 +155,18 @@ class RewardTTSModule(BaseModule):
 
         return False
 
+    def isReward(self, event):
+        for eventTag in event.tags:
+            if eventTag["key"] == "custom-reward-id":
+                return eventTag["value"]
+
+        return False
+
     def on_message(self, source, message, event, **rest):
-        if not self.isHighlightedMessage(event) or (self.settings["sub_only"] and not source.subscriber):
+        if (not self.settings["redeemed_id"] and not self.isHighlightedMessage(event)) or (self.settings["redeemed_id"] and self.isReward(event) != self.settings["redeemed_id"]) or (self.settings["sub_only"] and not source.subscriber):
             return
 
         self.generateTTS(source.name, message)
-
-    def on_redeem(self, redeemer, redeemed_id, user_input):
-        if user_input is not None and redeemed_id == self.settings["redeemed_id"]:
-            self.generateTTS(redeemer.name, user_input)
 
     def load_commands(self, **options):
         self.commands["skiptts"] = Command.raw_command(
@@ -179,16 +182,10 @@ class RewardTTSModule(BaseModule):
             log.warning("RewardTTSModule is enabled without .aws in the config")
             return
 
-        if self.settings["redeemed_id"]:
-            HandlerManager.add_handler("on_redeem", self.on_redeem)
-        else:
-            HandlerManager.add_handler("on_message", self.on_message)
+        HandlerManager.add_handler("on_message", self.on_message)
 
     def disable(self, bot):
         if not bot:
             return
 
-        if self.settings["redeemed_id"]:
-            HandlerManager.remove_handler("on_redeem", self.on_redeem)
-        else:
-            HandlerManager.remove_handler("on_message", self.on_message)
+        HandlerManager.remove_handler("on_message", self.on_message)
