@@ -1,5 +1,5 @@
 import logging
-import time
+from datetime import datetime
 
 from flask import redirect
 from flask import session
@@ -16,6 +16,6 @@ def init(page):
     @requires_level(500)
     def admin_songrequest(**options):
         token_expire = session.get("twitch_token_expire")
-        if not token_expire or token_expire <= utils.now():
+        if not token_expire or token_expire <= datetime.timestamp(utils.now()):
             return redirect("/login?returnTo=/admin/songrequest")
         return render_template("admin/songrequest.html", token_access=session.get("twitch_token"))
