@@ -65,7 +65,7 @@ class SongrequestQueue(Base):
         s = int(s)
         return f"{m:02d}:{s:02d}"
 
-    def playing_in(self, db_session):
+    def queue_and_playing_in(self, db_session):
         all_song_ids_before_current = SongRequestQueueManager.songs_before(self.id, "song-queue")
         if SongRequestQueueManager.song_playing_id:
             all_song_ids_before_current.append(SongRequestQueueManager.song_playing_id)
@@ -73,19 +73,12 @@ class SongrequestQueue(Base):
         time = 0
         for song in queued_unordered_songs:
             time += song.time_left if song.playing else song.duration
-        return time
-
-    def queue(self, db_session):
-        all_song_ids_before_current = SongRequestQueueManager.songs_before(self.id, "song-queue")
-        if SongRequestQueueManager.song_playing_id:
-            all_song_ids_before_current.append(SongRequestQueueManager.song_playing_id)
-        queued_unordered_songs = SongrequestQueue.from_list_id(db_session, all_song_ids_before_current)
-        return len(queued_unordered_songs)
+            if song.playing:
+                log.info(f"Song has {song.time_left}")
+        return len(queued_unordered_songs), time
 
     @hybrid_property
     def playing(self):
-        log.info(f"{self.id} == {SongRequestQueueManager.song_playing_id}")
-        log.info(str(self.id) == str(SongRequestQueueManager.song_playing_id))
         return str(self.id) == str(SongRequestQueueManager.song_playing_id)
 
     @hybrid_property

@@ -177,14 +177,15 @@ class SongrequestModule(BaseModule):
             self.bot.whisper(source, "You are not in our database!")
             return False
 
-        current_pos = requested_song.queue(self.bot.songrequest_manager.db_session) + 1
-        if current_pos != 1:
-            m, s = divmod(requested_song.playing_in(self.bot.songrequest_manager.db_session), 60)
+        current_pos, playing_in = requested_song.queue_and_playing_in(self.bot.songrequest_manager.db_session)
+        if current_pos:
+            m, s = divmod(playing_in, 60)
             m = int(m)
             s = int(s)
             playing_in = f"{m:02d}:{s:02d}"
         else:
             playing_in = "now"
+        current_pos += 1
 
         self.bot.say(
             self.settings["message_in_chat"].format(
@@ -233,7 +234,7 @@ class SongrequestModule(BaseModule):
     def get_next_song(self, bot, source, message, **rest):
         next_song = SongrequestQueue.get_next_song(self.bot.songrequest_manager.db_session)
         if next_song:
-            m, s = divmod(next_song.playing_in(self.bot.songrequest_manager.db_session), 60)
+            m, s = divmod(next_song.queue_and_playing_in(self.bot.songrequest_manager.db_session)[1], 60)
             m = int(m)
             s = int(s)
             playing_in = f"{m:02d}:{s:02d}"
@@ -451,7 +452,7 @@ class SongrequestModule(BaseModule):
         i = 1
         for song in playlist:
             if song.requested_by == source:
-                m, s = divmod(song.playing_in(self.bot.songrequest_manager.db_session), 60)
+                m, s = divmod(song.queue_and_playing_in(self.bot.songrequest_manager.db_session)[1], 60)
                 m = int(m)
                 s = int(s)
                 playing_in = f"in {m:02d}:{s:02d}" if m or s else "next"
