@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 from pajbot.managers.handler import HandlerManager
 from pajbot.managers.db import DBManager
