@@ -61,7 +61,7 @@ class WebSocketServer:
                 if "salt" not in data:
                     return False
 
-                ws = WebSocket.by_salt(db_session, data["salt"])
+                ws = db_session.query(WebSocket).filter_by(salt=data["salt"]).one_or_none()
                 if not ws:
                     return False
 
@@ -73,7 +73,7 @@ class WebSocketServer:
                 if "salt" not in data:
                     return False
 
-                if not WebSocket.by_salt(db_session, data["salt"]):
+                if not db_session.query(WebSocket).filter_by(salt=data["salt"]).one_or_none():
                     return False
 
                 manager.bot.songrequest_manager.load_song()
@@ -83,7 +83,7 @@ class WebSocketServer:
                 if "salt" not in data:
                     return False
 
-                if not WebSocket.by_salt(db_session, data["salt"]):
+                if not db_session.query(WebSocket).filter_by(salt=data["salt"]).one_or_none():
                     return False
 
                 manager.bot.songrequest_manager.ready_function()
