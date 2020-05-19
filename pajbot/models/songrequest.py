@@ -124,11 +124,11 @@ class SongrequestQueue(Base):
 
     @staticmethod
     def from_list_id(db_session, _ids):
-        return db_session.query(SongrequestQueue).filter(SongrequestQueue.id.in_(_ids)).all()
+        return db_session.query(SongrequestQueue).populate_existing().filter(SongrequestQueue.id.in_(_ids)).all()
 
     @staticmethod
     def from_id(db_session, _id):
-        return db_session.query(SongrequestQueue).filter_by(id=_id).one_or_none()
+        return db_session.query(SongrequestQueue).populate_existing().filter_by(id=_id).one_or_none()
 
     @staticmethod
     def pop_next_song(db_session, use_backup=True):
@@ -139,7 +139,7 @@ class SongrequestQueue(Base):
             if not next_id:
                 return None
 
-            song = db_session.query(SongrequestQueue).filter_by(id=next_id).one_or_none()
+            song = db_session.query(SongrequestQueue).populate_existing().filter_by(id=next_id).one_or_none()
         return song
 
     @staticmethod
@@ -155,7 +155,7 @@ class SongrequestQueue(Base):
     @staticmethod
     def get_current_song(db_session):
         return (
-            db_session.query(SongrequestQueue).filter_by(id=SongRequestQueueManager.song_playing_id).one_or_none()
+            db_session.query(SongrequestQueue).populate_existing().filter_by(id=SongRequestQueueManager.song_playing_id).one_or_none()
             if SongRequestQueueManager.song_playing_id
             else None
         )
@@ -168,14 +168,14 @@ class SongrequestQueue(Base):
             if not next_id:
                 return None
 
-            song = db_session.query(SongrequestQueue).filter_by(id=next_id).one_or_none()
+            song = db_session.query(SongrequestQueue).populate_existing().filter_by(id=next_id).one_or_none()
             if not song:
                 SongRequestQueueManager.remove_song_id(next_id)
         return song
 
     @staticmethod
     def all_by_video_id(db_session, _video_id):
-        return db_session.query(SongrequestQueue).filter_by(video_id=_video_id).all()
+        return db_session.query(SongrequestQueue).populate_existing().filter_by(video_id=_video_id).all()
 
     @staticmethod
     def pruge_videos(db_session, _video_id):
@@ -299,7 +299,7 @@ class SongrequestHistory(Base):
 
     @staticmethod
     def get_previous(db_session, position):
-        songs = db_session.query(SongrequestHistory).order_by(SongrequestHistory.id.desc()).limit(position + 1).all()
+        songs = db_session.query(SongrequestHistory).populate_existing().order_by(SongrequestHistory.id.desc()).limit(position + 1).all()
         if len(songs) == position + 1:
             return songs[position]
 
@@ -312,16 +312,17 @@ class SongrequestHistory(Base):
 
     @staticmethod
     def get_list(db_session, size):
-        return db_session.query(SongrequestHistory).order_by(SongrequestHistory.id.desc()).limit(size).all()
+        return db_session.query(SongrequestHistory).populate_existing().order_by(SongrequestHistory.id.desc()).limit(size).all()
 
     @staticmethod
     def from_id(db_session, _id):
-        return db_session.query(SongrequestHistory).filter_by(id=_id).one_or_none()
+        return db_session.query(SongrequestHistory).populate_existing().filter_by(id=_id).one_or_none()
 
     @staticmethod
     def get_history(db_session, limit):
         played_songs = (
             db_session.query(SongrequestHistory)
+            .populate_existing()
             .filter(SongrequestHistory.song_info.has(banned=False))
             .order_by(SongrequestHistory.id.desc())
             .limit(limit)
@@ -371,7 +372,7 @@ class SongRequestSongInfo(Base):
 
     @staticmethod
     def create_or_get(db_session, video_id, youtube):
-        song_info = db_session.query(SongRequestSongInfo).filter_by(video_id=video_id).one_or_none()
+        song_info = db_session.query(SongRequestSongInfo).populate_existing().filter_by(video_id=video_id).one_or_none()
         if song_info:
             return song_info
 
@@ -400,14 +401,14 @@ class SongRequestSongInfo(Base):
 
     @staticmethod
     def get(db_session, video_id):
-        return db_session.query(SongRequestSongInfo).filter_by(video_id=video_id).one_or_none()
+        return db_session.query(SongRequestSongInfo).populate_existing().filter_by(video_id=video_id).one_or_none()
 
     @staticmethod
     def get_banned(db_session):
-        return db_session.query(SongRequestSongInfo).filter_by(banned=True).order_by(SongRequestSongInfo.video_id).all()
+        return db_session.query(SongRequestSongInfo).populate_existing().filter_by(banned=True).order_by(SongRequestSongInfo.video_id).all()
 
     @staticmethod
     def get_favourite(db_session):
         return (
-            db_session.query(SongRequestSongInfo).filter_by(favourite=True).order_by(SongRequestSongInfo.video_id).all()
+            db_session.query(SongRequestSongInfo).populate_existing().filter_by(favourite=True).order_by(SongRequestSongInfo.video_id).all()
         )
