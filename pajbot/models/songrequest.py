@@ -78,9 +78,12 @@ class SongrequestQueue(Base):
                 time += song.time_left
         return time
 
-    @hybrid_property
-    def queue(self):
-        return SongRequestQueueManager.get_id_index(self.id)
+    def queue(self, db_session):
+        all_song_ids_before_current = SongRequestQueueManager.songs_before(self.id, "song-queue")
+        if SongRequestQueueManager.song_playing_id:
+            all_song_ids_before_current.append(SongRequestQueueManager.song_playing_id)
+        queued_unordered_songs = SongrequestQueue.from_list_id(db_session, all_song_ids_before_current)
+        return len(queued_unordered_songs)
 
     @hybrid_property
     def playing(self):
@@ -119,7 +122,7 @@ class SongrequestQueue(Base):
             skipped_by_id,
             self.skip_after,
         )
-        song.purge(db_session)
+        self.purge(db_session)
         return history
 
     @hybrid_property
