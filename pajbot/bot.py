@@ -237,12 +237,12 @@ class Bot:
             self.twitter_manager = TwitterManager(self)
         streamlabs_token = config["streamlabs"].get("socket_access_token")
         self.websocket_manager = WebSocketManager(self)
+        SongRequestQueueManager.init(self.streamer)
         self.songrequest_websocket_manager = SongRequestWebSocketManager(self)
         self.streamlabs_manager = StreamLabsManager(streamlabs_token) if streamlabs_token else None
         self.pubsub_manager = PubSubManager(self, self.streamer_access_token_manager)
         self.songrequest_manager = SongrequestManager(self, self.config["youtube"]["api_key"])
         self.spotify_streamlabs_manager = SpotifyStreamLabsManager(self)
-        SongRequestQueueManager.init(self.streamer)
         self.module_manager = ModuleManager(self.socket_manager, bot=self).load()
         self.commands = CommandManager(
             socket_manager=self.socket_manager, module_manager=self.module_manager, bot=self
