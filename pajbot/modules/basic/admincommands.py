@@ -36,7 +36,8 @@ class AdminCommandsModule(BaseModule):
             rest = " ".join(msg_args[1:])
             bot.whisper_login(username, rest)
 
-    def mass_points(self, bot, source, message, **rest):
+    @staticmethod
+    def mass_points(bot, source, message, **rest):
         if not message:
             return False
 
@@ -53,8 +54,8 @@ class AdminCommandsModule(BaseModule):
             bot.whisper(source, f"Invalid amount of points. Usage: !masspoints USERNAME POINTS")
             return False
 
-        chatter_logins = self.bot.twitch_tmi_api.get_chatter_logins_by_login(self.bot.streamer)
-        chatter_basics = self.bot.twitch_helix_api.bulk_get_user_basics_by_login(chatter_logins)
+        chatter_logins = bot.twitch_tmi_api.get_chatter_logins_by_login(bot.streamer)
+        chatter_basics = bot.twitch_helix_api.bulk_get_user_basics_by_login(chatter_logins)
 
         # filter out invalid/deleted/etc. users
         chatter_basics = [e for e in chatter_basics if e is not None]
@@ -76,7 +77,8 @@ WHERE "user".ignored = False and "user".banned = False
             )
         bot.say(f"{num_points} points have been given to {len(chatter_basics)} chatters!")
 
-    def edit_points(self, bot, source, message, **rest):
+    @staticmethod
+    def edit_points(bot, source, message, **rest):
         if not message:
             return False
 
@@ -108,7 +110,8 @@ WHERE "user".ignored = False and "user".banned = False
             else:
                 bot.whisper(source, f"Successfully removed {abs(num_points)} points from {user}.")
 
-    def set_points(self, bot, source, message, **rest):
+    @staticmethod
+    def set_points(bot, source, message, **rest):
         if not message:
             return False
 
