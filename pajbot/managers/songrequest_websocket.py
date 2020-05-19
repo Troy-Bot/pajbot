@@ -82,6 +82,7 @@ class SongRequestWebSocketServer:
                         method = switcher.get(json_msg["event"].upper(), None)
                         try:
                             if not manager_ext.bot.songrequest_manager.states["enabled"]:
+                                self._close_conn()
                                 return
                         except AttributeError:
                             self._close_conn()
@@ -527,11 +528,11 @@ class SongRequestWebSocketServer:
                     "volume": manager_ext.bot.songrequest_manager.volume,
                     "current_song": current_song.webjsonify() if current_song else {},
                     "module_state": manager_ext.bot.songrequest_manager.states,
-                    "playlist": SongrequestQueue.get_playlist(manager_ext.bot.songrequest_manager.db_session, limit=30),
-                    "backup_playlist": SongrequestQueue.get_backup_playlist(manager_ext.bot.songrequest_manager.db_session, limit=30),
-                    "history_list": SongrequestHistory.get_history(manager_ext.bot.songrequest_manager.db_session, limit=30),
-                    "banned_list": [x.jsonify() for x in SongRequestSongInfo.get_banned(manager_ext.bot.songrequest_manager.db_session)],
-                    "favourite_list": [x.jsonify() for x in SongRequestSongInfo.get_favourite(manager_ext.bot.songrequest_manager.db_session)],
+                    "playlist": SongrequestQueue.get_playlist(db_session, limit=30),
+                    "backup_playlist": SongrequestQueue.get_backup_playlist(db_session, limit=30),
+                    "history_list": SongrequestHistory.get_history(db_session, limit=30),
+                    "banned_list": [x.jsonify() for x in SongRequestSongInfo.get_banned(db_session)],
+                    "favourite_list": [x.jsonify() for x in SongRequestSongInfo.get_favourite(db_session)],
                     "current_timestamp": str(utils.now().timestamp()),
                 }
                 payload = {"event": "initialize", "data": data}
