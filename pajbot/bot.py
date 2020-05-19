@@ -775,9 +775,6 @@ class Bot:
         login = event.source.user
         name = tags["display-name"]
 
-        if "custom-reward-id" in tags:
-            log.info("REWARD!")
-
         if event.source.user == self.nickname:
             return False
 
