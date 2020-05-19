@@ -147,6 +147,7 @@ def init(args):
             "domain": config["web"]["domain"],
             "deck_tab_images": config.getboolean("web", "deck_tab_images"),
             "websocket": {"host": config["websocket"].get("host", f"wss://{config['web']['domain']}/clrsocket")},
+            "songrequestWS": {"host": config["songrequest-websocket"].get("host", f"wss://{config['web']['domain']}/songrequest_websocket")},
         },
         "streamer": {"name": config["web"]["streamer_name"], "full_name": config["main"]["streamer"]},
         "modules": app.bot_modules,
