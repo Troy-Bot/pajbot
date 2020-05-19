@@ -7,5 +7,5 @@ log = logging.getLogger(__name__)
 
 def init(app):
     @app.route("/tts")
-    def contact():
+    def tts():
         return render_template("tts.html")
