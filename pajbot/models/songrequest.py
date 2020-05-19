@@ -72,10 +72,7 @@ class SongrequestQueue(Base):
         queued_unordered_songs = SongrequestQueue.from_list_id(db_session, all_song_ids_before_current)
         time = 0
         for song in queued_unordered_songs:
-            if not song.playing:
-                time += song.skip_after if song.skip_after else song.song_info.duration
-            else:
-                time += song.time_left
+            time += song.time_left if song.playing else song.duration
         return time
 
     def queue(self, db_session):
@@ -87,6 +84,7 @@ class SongrequestQueue(Base):
 
     @hybrid_property
     def playing(self):
+        log.info(f"{self.id} == {SongRequestQueueManager.song_playing_id}")
         return str(self.id) == str(SongRequestQueueManager.song_playing_id)
 
     @hybrid_property
