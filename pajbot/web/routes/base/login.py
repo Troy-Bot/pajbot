@@ -38,15 +38,11 @@ def init(app):
         return redirect(authorize_url)
 
     def spotify_login(scopes):
-        csrf_token = base64.b64encode(os.urandom(64)).decode("utf-8")
-        session["spotify_csrf_token"] = csrf_token
-
         params = {
             "client_id": app.bot_config["spotify"]["client_id"],
             "redirect_uri": app.bot_config["spotify"]["redirect_uri"],
             "response_type": "code",
-            "scope": " ".join(scopes),
-            "csrf_token": csrf_token,
+            "scope": " ".join(scopes)
         }
 
         authorize_url = "https://accounts.spotify.com/authorize?" + urllib.parse.urlencode(params)
@@ -124,17 +120,6 @@ def init(app):
 
         def login_error(code, detail_msg=None):
             return render_template("login_error.html", return_to=return_to, detail_msg=detail_msg), code
-
-        csrf_token = state.get("csrf_token", None)
-        if csrf_token is None:
-            return login_error(400, "CSRF token missing from state")
-
-        csrf_token_in_session = session.pop("csrf_token", None)
-        if csrf_token_in_session is None:
-            return login_error(400, "No CSRF token in session cookie")
-
-        if csrf_token != csrf_token_in_session:
-            return login_error(403, "CSRF tokens don't match")
 
         # determine if we got ?code= or ?error= (success or not)
         # https://tools.ietf.org/html/rfc6749#section-4.1.2
@@ -239,7 +224,7 @@ def init(app):
         code = request.args["code"]
 
         try:
-            # gets us an UserAccessToken object
+            # gets us an UserAcce   ssToken object
             access_token = app.spotify_token_api.get_user_access_token(code)
         except:
             log.exception("Could not exchange given code for access token with Twitch")
