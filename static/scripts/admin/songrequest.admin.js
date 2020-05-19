@@ -245,7 +245,7 @@ function current_song(data, update = true) {
             console.log(start_time);
             player.loadVideoById({
                 'videoId': data['current_song']['song_info']['video_id'],
-                'startSeconds': start_time > 0 ? start_time : 0
+                'startSeconds': start_time > 0 ? start_time : 0.01
             });
         }
         $('#ban_current_video').removeClass('disabled');
