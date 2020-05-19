@@ -17,6 +17,6 @@ log = logging.getLogger("pajbot")
 @nocache
 def overlay(salt):
     with DBManager.create_session_scope() as db_session:
-        if not WebSocket._by_salt(db_session, salt):
+        if not db_session.query(WebSocket).filter_by(salt=salt).one_or_none():
             return render_template("no_overlay.html"), 404
     return render_template("clr/overlay.html", salt=salt)

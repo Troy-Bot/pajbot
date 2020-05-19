@@ -17,7 +17,7 @@ def init(page):
     @requires_level(500)
     def admin_overlays(**options):
         with DBManager.create_session_scope() as db_session:
-            overlays = [x.jsonify() for x in WebSocket._all(db_session)]
+            overlays = [x.jsonify() for x in db_session.query(WebSocket).all()]
         return render_template("admin/overlays.html", overlays=overlays)
 
     @page.route("/overlays/edit/<overlay_id>")
@@ -26,7 +26,7 @@ def init(page):
         with DBManager.create_session_scope() as db_session:
             log.info(overlay_id)
             try:
-                WebSocket._by_id(db_session, int(overlay_id))._new_salt(db_session)
+                db_session.query(WebSocket).filer_by(id=int(overlay_id)).one_or_none().new_salt()
             except:
                 return render_template("admin/no_overlay.html")
         return redirect("/admin/overlays")
@@ -44,7 +44,7 @@ def init(page):
 
             with DBManager.create_session_scope() as db_session:
                 try:
-                    if not Widget._by_id(db_session, int(widget_id)):
+                    if not db_session.query(WebSocket).filer_by(id=int(widget_id)).one_or_none():
                         abort(403)
                         return
                 except Exception as e:
@@ -55,7 +55,7 @@ def init(page):
                 return redirect("/admin/overlays")
         else:
             with DBManager.create_session_scope() as db_session:
-                widgets = [x.jsonify() for x in Widget._all(db_session)]
+                widgets = [x.jsonify() for x in db_session.query(WebSocket).all()]
             return render_template("admin/create_overlay.html", widgets=widgets)
 
     @page.route("/overlays/remove/<overlay_id>")
@@ -63,7 +63,7 @@ def init(page):
     def admin_overlays_delete(overlay_id, **options):
         with DBManager.create_session_scope() as db_session:
             try:
-                WebSocket._by_id(db_session, int(overlay_id))._remove(db_session)
+                db_session.delete(db_session.query(WebSocket).filer_by(id=int(overlay_id)).one_or_none())
             except:
                 return render_template("admin/no_overlay.html")
         return redirect("/admin/overlays")
