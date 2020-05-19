@@ -52,7 +52,7 @@ class ChannelPointTimeout(BaseModule):
             with DBManager.create_session_scope() as db_session:
                 user = User.find_by_user_input(db_session, username)
                 if not user:
-                    self.bot.whisper(redeemer, f"{username.name} has never typed in the chat.")
+                    self.bot.whisper(redeemer, f"{username} has never typed in the chat.")
                     return
 
                 if user.level >= 500 or user.moderator:
@@ -76,6 +76,7 @@ class ChannelPointTimeout(BaseModule):
 
                 self.bot.untimeout(user)
                 self.bot.whisper(redeemer, f"Successfully untimed-out {user.name}")
+                del self.user_list[str_user_id]
 
     def enable(self, bot):
         if not bot:
