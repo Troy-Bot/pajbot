@@ -500,11 +500,11 @@ class SongRequestWebSocketServer:
                     )
 
                 return (
-                    0,
+                    1,
                     {
                         "success": True,
-                        "header": "Backup Playlist set to ",
-                        "text": f"https://www.youtube.com/playlist?list={playlist_id}",
+                        "header": "Backup Playlist set to " if playlist_id else "Backup playlist has been removed",
+                        "text": f"https://www.youtube.com/playlist?list={playlist_id}" if playlist_id else "",
                         "duration": 4000,
                     },
                 )
