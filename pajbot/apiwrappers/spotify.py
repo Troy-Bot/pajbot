@@ -31,7 +31,7 @@ class SpotifyPlayerAPI(BaseAPI):
             self.state(authentication)
         if not self.device_id:
             return False
-        self.put(endpoint="me/player", headers=headers, json={"device_ids": [f"{self.device_id}"], "play": False})
+        self.put(endpoint="me/player", headers=headers, data={"device_ids": [self.device_id], "play": False})
 
     def play(self, authentication):
         headers = self.authentication(authentication)
@@ -43,7 +43,7 @@ class SpotifyPlayerAPI(BaseAPI):
         if not self.device_id:
             return False
 
-        self.put(endpoint="me/player", headers=headers, json={"device_ids": [f"{self.device_id}"], "play": True})
+        self.put(endpoint="me/player", headers=headers, data={"device_ids": [self.device_id], "play": True})
 
     def state(self, authentication):
         headers = self.authentication(authentication)
