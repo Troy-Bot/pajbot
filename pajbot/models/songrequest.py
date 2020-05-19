@@ -85,6 +85,7 @@ class SongrequestQueue(Base):
     @hybrid_property
     def playing(self):
         log.info(f"{self.id} == {SongRequestQueueManager.song_playing_id}")
+        log.info(str(self.id) == str(SongRequestQueueManager.song_playing_id))
         return str(self.id) == str(SongRequestQueueManager.song_playing_id)
 
     @hybrid_property
