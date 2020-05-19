@@ -27,4 +27,3 @@ def up(cursor, bot):
     cursor.execute("INSERT INTO widgets(id, name) VALUES (4, 'SONGREQUEST')")
     cursor.execute("INSERT INTO widgets(id, name) VALUES (5, 'EMOTECOMBO')")
     cursor.execute("INSERT INTO widgets(id, name) VALUES (6, 'TTS')")
-    cursor.execute('ALTER TABLE "playsound" ADD COLUMN tier INTEGER NOT NULL DEFAULT 0')
