@@ -238,7 +238,7 @@ function current_song(data, update = true) {
                 Math.floor(new Date().getTime() / 1000) -
                 parseFloat(data['current_timestamp']) +
                 0.5;
-            console.log(time_diff);
+            console.log(data['current_song']['current_song_time']);
             player.loadVideoById(
                 data['current_song']['song_info']['video_id'],
                 Math.round(
