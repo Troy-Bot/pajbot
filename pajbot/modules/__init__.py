@@ -72,6 +72,8 @@ from pajbot.modules.paidtimeout import PaidTimeoutModule
 from pajbot.modules.random_redeem_points import RandomRedeem
 from pajbot.modules.taxation import Taxation
 from pajbot.modules.emote_limit import EmoteLimitModule
+from pajbot.modules.channel_point_timeout import ChannelPointTimeout
+
 
 available_modules = [
     AnalogyModule,
@@ -83,6 +85,7 @@ available_modules = [
     BetModule,
     BingoModule,
     CaseCheckerModule,
+    ChannelPointTimeout,
     CheckModModule,
     ConvertPoints,
     DBManageModule,

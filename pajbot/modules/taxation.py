@@ -159,7 +159,7 @@ class Taxation(BaseModule):
                 if user_id in users_dict:
                     users_dict[user_id]["redemption_costs"] += int(item["cost"])
                     index = (
-                        datetime.strptime(item["redeemed_at"], "%Y-%m-%dT%H:%M:%SZ").astimezone(
+                        datetime.fromisoformat(item["redeemed_at"]).astimezone(
                             pytz.timezone(self.settings["default_timezone"])
                         )
                         - after_date
@@ -204,7 +204,7 @@ class Taxation(BaseModule):
                         if not timeout["expires_at"]:
                             continue
                         new_timeout = (
-                            datetime.fromisoformat(timeout["expires_at"]) - utils.now()
+                            datetime.strptime(timeout["expires_at"], "%Y-%m-%dT%H:%M:%SZ") - utils.now()
                         ).total_seconds() + self.settings["timeout_duration"]
                     else:
                         new_timeout = self.settings["timeout_duration"]
