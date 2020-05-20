@@ -59,6 +59,7 @@ class PubSubManager:
                 return
             message_message = json.loads(msg["data"]["message"])
             if message_message["type"] == "reward-redeemed":
+                # log.debug(message_message["data"]["redemption"]["reward"]["id"])
                 userDict = message_message["data"]["redemption"]["user"]
                 HandlerManager.trigger(
                     "on_redeem",

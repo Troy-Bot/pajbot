@@ -4,7 +4,7 @@ from pajbot.models.command import Command
 from pajbot.models.command import CommandExample
 from pajbot.modules import BaseModule
 from pajbot.modules import ModuleSetting
-from pajbot.managers.schedule import ScheduleManager
+from pajbot.managers.handler import HandlerManager
 
 log = logging.getLogger(__name__)
 
@@ -98,6 +98,14 @@ class ShowEmoteModule(BaseModule):
             required=True,
             default=True,
         ),
+        ModuleSetting(
+            key="redeem_id_showemote",
+            label="ID of redemeed prize for showemote",
+            type="text",
+            required=False,
+            default="",
+            constraints={"min_str_len": 36, "max_str_len": 36},
+        ),
     ]
 
     def is_emote_allowed(self, emote_code):
@@ -153,3 +161,30 @@ class ShowEmoteModule(BaseModule):
                 ).parse()
             ],
         )
+
+    def isReward(self, event):
+        for eventTag in event.tags:
+            if eventTag["key"] == "custom-reward-id":
+                return eventTag["value"]
+
+        return False
+
+    def on_message(self, source, message, event, emote_instances, **rest):
+        redeemed_id = self.isReward(event)
+        if not redeemed_id:
+            return
+
+        if redeemed_id == self.settings["redeem_id_showemote"]:
+            self.show_emote(self.bot, source, {"emote_instances": emote_instances})
+
+    def enable(self, bot):
+        if not bot:
+            return
+
+        HandlerManager.add_handler("on_message", self.on_message)
+
+    def disable(self, bot):
+        if not bot:
+            return
+
+        HandlerManager.remove_handler("on_message", self.on_message)

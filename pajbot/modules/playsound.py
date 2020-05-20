@@ -3,6 +3,7 @@ import logging
 import re
 from argparse import ArgumentParser
 
+from pajbot.managers.handler import HandlerManager
 from pajbot.managers.db import DBManager
 from pajbot.models.playsound import Playsound
 from pajbot.modules import BaseModule
@@ -86,6 +87,14 @@ class PlaysoundModule(BaseModule):
             type="boolean",
             required=True,
             default=True,
+        ),
+        ModuleSetting(
+            key="redeem_id_playsounds",
+            label="ID of redemeed prize for playsounds",
+            type="text",
+            required=False,
+            default="",
+            constraints={"min_str_len": 36, "max_str_len": 36},
         ),
     ]
 
@@ -660,3 +669,30 @@ class PlaysoundModule(BaseModule):
                 )
             },
         )
+
+    def isReward(self, event):
+        for eventTag in event.tags:
+            if eventTag["key"] == "custom-reward-id":
+                return eventTag["value"]
+
+        return False
+
+    def on_message(self, source, message, event, emote_instances, **rest):
+        redeemed_id = self.isReward(event)
+        if not redeemed_id:
+            return
+
+        if redeemed_id == self.settings["redeem_id_playsounds"]:
+            self.play_sound(self.bot, source, message)
+
+    def enable(self, bot):
+        if not bot:
+            return
+
+        HandlerManager.add_handler("on_message", self.on_message)
+
+    def disable(self, bot):
+        if not bot:
+            return
+
+        HandlerManager.remove_handler("on_message", self.on_message)
