@@ -280,11 +280,28 @@ function refresh_emote_combo({ emote, count }) {
     refresh_combo_count(count);
 }
 
-function play_sound({ link, volume }) {
+let queue = [];
+var playing = false;
+function play_sound({ link, volume, use_queue }) {
+    if (use_queue && playing) {
+        queue.push({link, volume, use_queue}); 
+        return;
+    } 
+    if (use_queue) {
+        playing = true;
+    }
     let player = new Howl({
         src: [link],
         volume: volume * 0.01, // the given volume is between 0 and 100
-        onend: () => console.log('Playsound audio finished playing'),
+        onend: () => {
+            console.log('Playsound audio finished playing');
+            player.unload();
+            if (queue.length > 0) {
+                play_sound(queue.pop());
+            } else {
+                playing = false;
+            }
+        },
         onloaderror: e => console.warn('audio load error', e),
         onplayerror: e => console.warn('audio play error', e),
     });

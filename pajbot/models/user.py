@@ -109,6 +109,9 @@ class User(Base):
         self.ignored = False
         self.banned = False
         self.timeout_end = None
+        self.vip = False
+        self.founder = False
+        self.tier = 0
 
         super().__init__(*args, **kwargs)
 
