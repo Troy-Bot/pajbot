@@ -4,9 +4,13 @@ import random
 import re
 import boto3
 import botocore
+import time
+import threading
 
 from pajbot.models.command import Command
+from pajbot.models.user import User
 from pajbot.managers.handler import HandlerManager
+from pajbot.managers.db import DBManager
 from pajbot.modules import BaseModule
 from pajbot.modules import ModuleSetting
 
@@ -100,6 +104,14 @@ class RewardTTSModule(BaseModule):
             default="",
             constraints={"min_str_len": 36, "max_str_len": 36},
         ),
+        ModuleSetting(
+            key="sleep_delay",
+            label="Duration to wait before playing tts to check if message was okay",
+            type="number",
+            required=False,
+            default=5,
+            constraints={"min_value": 0, "max_value": 10},
+        ),
     ]
 
     def command_skip(self, bot, **rest):
@@ -165,6 +177,17 @@ class RewardTTSModule(BaseModule):
     def on_message(self, source, message, event, **rest):
         if (not self.settings["redeemed_id"] and not self.isHighlightedMessage(event)) or (self.settings["redeemed_id"] and self.isReward(event) != self.settings["redeemed_id"]) or (self.settings["sub_only"] and not source.subscriber):
             return
+
+        thread = threading.Thread(target=self.threaded_delay, args=(source, message), daemon=True)
+        thread.start()
+        # self.generateTTS(source.name, message)
+
+    def threaded_delay(self, source, message):
+        time.sleep(self.settings["sleep_delay"])
+        with DBManager.create_session_scope() as db_session:
+            user = db_session.query(User).filter_by(id=source.id).one_or_none()
+            if user.timed_out:
+                return
 
         self.generateTTS(source.name, message)
 

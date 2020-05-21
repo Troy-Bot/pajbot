@@ -96,6 +96,7 @@ class PlaysoundModule(BaseModule):
             default="",
             constraints={"min_str_len": 36, "max_str_len": 36},
         ),
+        ModuleSetting(key="use_queue", label="Queue playsounds", type="boolean", required=True, default=True),
     ]
 
     def __init__(self, bot):
@@ -183,6 +184,7 @@ class PlaysoundModule(BaseModule):
             payload = {
                 "link": playsound.link,
                 "volume": int(round(playsound.volume * self.settings["global_volume"] / 100)),
+                "use_queue": self.settings["use_queue"],
             }
 
             cost = playsound.cost if playsound.cost else self.settings["point_cost"]

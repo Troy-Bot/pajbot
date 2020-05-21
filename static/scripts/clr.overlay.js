@@ -280,16 +280,36 @@ function refresh_emote_combo({ emote, count }) {
     refresh_combo_count(count);
 }
 
-function play_sound({ link, volume }) {
+let queue = [];
+var playing = false;
+function play_sound({ link, volume, use_queue }) {
+    if (use_queue && playing) {
+        console.log("Queued");
+        queue.push({link, volume, use_queue}); 
+        return;
+    } 
+    if (use_queue) {
+        playing = true;
+    }
     let player = new Howl({
         src: [link],
         volume: volume * 0.01, // the given volume is between 0 and 100
-        onend: () => console.log('Playsound audio finished playing'),
+        onend: onend_playsounds,
         onloaderror: e => console.warn('audio load error', e),
         onplayerror: e => console.warn('audio play error', e),
     });
 
     player.play();
+}
+
+function onend_playsounds() {
+    console.log('Playsound audio finished playing');
+    playing = false;
+    if (queue.length > 0) {
+        let item = queue.pop();
+        console.log(item);
+        play_sound(item);
+    }
 }
 
 //Bet System

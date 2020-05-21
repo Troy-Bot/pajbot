@@ -34,6 +34,7 @@ class ChannelPointTimeout(BaseModule):
             constraints={"min_str_len": 36, "max_str_len": 36},
         ),
         ModuleSetting(key="timeout_duration", label="Duration in seconds for the timeout", type="number", required=True, default=3600),
+        ModuleSetting(key="vip_immune", label="Are vips immune to timeouts?", type="boolean", required=True, default=True),
     ]
 
     def __init__(self, bot):
@@ -58,7 +59,13 @@ class ChannelPointTimeout(BaseModule):
                 if user.level >= 500 or user.moderator:
                     self.bot.whisper(redeemer, f"You cannout timeout moderators!")
                     return
+                if user.vip and self.settings["vip_immune"]:
+                    self.bot.whisper(redeemer, f"You cannout vips!")
+                    return
 
+                if user.timed_out:
+                    self.bot.whisper(redeemer, f"This user is already timedout!")
+                    return
                 str_user_id = str(user.id)
 
                 if redeemed_id == self.settings["redeemed_id_timeout"]:
@@ -75,6 +82,7 @@ class ChannelPointTimeout(BaseModule):
                     return
 
                 self.bot.untimeout(user)
+                user.timed_out = False
                 self.bot.whisper(redeemer, f"Successfully untimed-out {user.name}")
                 del self.user_list[str_user_id]
 
