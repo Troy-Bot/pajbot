@@ -64,6 +64,10 @@ class ChannelPointTimeout(BaseModule):
                     self.bot.whisper(redeemer, f"You cannout vips!")
                     return
 
+                if user.timed_out:
+                    self.bot.whisper(redeemer, f"This user is already timedout!")
+                    return
+
                 str_user_id = str(user.id)
 
                 if redeemed_id == self.settings["redeemed_id_timeout"]:
@@ -80,6 +84,7 @@ class ChannelPointTimeout(BaseModule):
                     return
 
                 self.bot.untimeout(user)
+                user.timed_out = False
                 self.bot.whisper(redeemer, f"Successfully untimed-out {user.name}")
                 del self.user_list[str_user_id]
 
