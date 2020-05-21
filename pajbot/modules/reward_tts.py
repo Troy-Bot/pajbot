@@ -4,6 +4,7 @@ import random
 import re
 import boto3
 import botocore
+import time
 
 from pajbot.models.command import Command
 from pajbot.managers.handler import HandlerManager
@@ -100,6 +101,14 @@ class RewardTTSModule(BaseModule):
             default="",
             constraints={"min_str_len": 36, "max_str_len": 36},
         ),
+        ModuleSetting(
+            key="sleep_delay",
+            label="Duration to wait before playing tts to check if message was okay",
+            type="number",
+            required=False,
+            default=5,
+            constraints={"min_value": 0, "max_value": 10},
+        ),
     ]
 
     def command_skip(self, bot, **rest):
@@ -164,6 +173,10 @@ class RewardTTSModule(BaseModule):
 
     def on_message(self, source, message, event, **rest):
         if (not self.settings["redeemed_id"] and not self.isHighlightedMessage(event)) or (self.settings["redeemed_id"] and self.isReward(event) != self.settings["redeemed_id"]) or (self.settings["sub_only"] and not source.subscriber):
+            return
+
+        time.sleep(self.settings["sleep_delay"])
+        if source.timed_out:
             return
 
         self.generateTTS(source.name, message)
