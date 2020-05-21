@@ -44,18 +44,18 @@ def init(page):
 
             with DBManager.create_session_scope() as db_session:
                 try:
-                    if not db_session.query(WebSocket).filer_by(id=int(widget_id)).one_or_none():
+                    if not db_session.query(Widget).filter_by(id=int(widget_id)).one_or_none():
                         abort(403)
                         return
                 except Exception as e:
                     log.info(e)
                     abort(403)
                     return
-                WebSocket._create(db_session, int(widget_id))
+                WebSocket.create(db_session, int(widget_id))
                 return redirect("/admin/overlays")
         else:
             with DBManager.create_session_scope() as db_session:
-                widgets = [x.jsonify() for x in db_session.query(WebSocket).all()]
+                widgets = [x.jsonify() for x in db_session.query(Widget).all()]
             return render_template("admin/create_overlay.html", widgets=widgets)
 
     @page.route("/overlays/remove/<overlay_id>")

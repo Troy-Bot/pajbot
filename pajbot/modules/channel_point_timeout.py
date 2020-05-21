@@ -59,7 +59,6 @@ class ChannelPointTimeout(BaseModule):
                 if user.level >= 500 or user.moderator:
                     self.bot.whisper(redeemer, f"You cannout timeout moderators!")
                     return
-
                 if user.vip and self.settings["vip_immune"]:
                     self.bot.whisper(redeemer, f"You cannout vips!")
                     return
@@ -67,7 +66,6 @@ class ChannelPointTimeout(BaseModule):
                 if user.timed_out:
                     self.bot.whisper(redeemer, f"This user is already timedout!")
                     return
-
                 str_user_id = str(user.id)
 
                 if redeemed_id == self.settings["redeemed_id_timeout"]:
