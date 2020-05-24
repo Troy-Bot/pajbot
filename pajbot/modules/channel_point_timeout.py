@@ -57,18 +57,19 @@ class ChannelPointTimeout(BaseModule):
                     return
 
                 if user.level >= 500 or user.moderator:
-                    self.bot.whisper(redeemer, f"You cannout timeout moderators!")
+                    self.bot.whisper(redeemer, "You cannout timeout moderators!")
                     return
+
                 if user.vip and self.settings["vip_immune"]:
-                    self.bot.whisper(redeemer, f"You cannout vips!")
+                    self.bot.whisper(redeemer, "You cannout vips!")
                     return
 
-                if user.timed_out:
-                    self.bot.whisper(redeemer, f"This user is already timedout!")
-                    return
                 str_user_id = str(user.id)
-
                 if redeemed_id == self.settings["redeemed_id_timeout"]:
+                    if user.timed_out:
+                        self.bot.whisper(redeemer, "This user is already timedout!")
+                        return
+
                     duration = self.settings["timeout_duration"]
                     self.user_list[str_user_id] = utils.now() + timedelta(seconds=duration)
                     self.bot.timeout(user, duration, f"{redeemer.name} paid for their timeout")
@@ -76,7 +77,7 @@ class ChannelPointTimeout(BaseModule):
                     return
 
                 if str_user_id not in self.user_list or self.user_list[str_user_id] < utils.now():
-                    self.bot.whisper(redeemer, f"You can only untimeout people who have been timedout by this module.")
+                    self.bot.whisper(redeemer, "You can only untimeout people who have been timedout by this module.")
                     if str_user_id in self.user_list:
                         del self.user_list[str_user_id]
                     return
