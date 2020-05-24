@@ -2,10 +2,9 @@ import logging
 import base64
 import random
 import re
-import boto3
-import botocore
 import time
 import threading
+import requests
 
 from pajbot.models.command import Command
 from pajbot.models.user import User
@@ -17,73 +16,35 @@ from pajbot.modules import ModuleSetting
 log = logging.getLogger(__name__)
 
 
-neuralVoices = [
-    "Amy",
+allVoices = [
     "Brian",
-    "Camila",
-    "Emma",
     "Ivy",
-    "Joanna",
-    "Joey",
     "Justin",
-    "Kendra",
-    "Kimberly",
-    "Lupe",
-    "Matthew",
+    "Russell",
+    "Nicole",
+    "Emma",
+    "Amy",
+    "Joanna",
     "Salli",
-]
-normalVoices = [
-    "Aditi",
-    "Astrid",
-    "Bianca",
-    "Carla",
-    "Celine",
+    "Kimberly",
+    "Kendra",
+    "Joey",
+    "Mizuki",
     "Chantal",
-    "Conchita",
-    "Cristiano",
-    "Enrique",
-    "Filiz",
-    "Geraint",
-    "Giorgio",
-    "Hans",
-    "Ines",
-    "Jacek",
-    "Lea",
-    "Liv",
-    "Lotte",
-    "Lucia",
-    "Mads",
-    "Marlene",
     "Mathieu",
     "Maxim",
-    "Mia",
-    "Miguel",
-    "Mizuki",
-    "Naja",
-    "Nicole",
-    "Penelope",
+    "Hans",
     "Raveena",
-    "Ricardo",
-    "Ruben",
-    "Russell",
-    "Seoyeon",
-    "Takumi",
-    "Tatyana",
-    "Vicki",
-    "Vitoria",
-    "Zeina",
-    "Zhiyu",
 ]
-allVoices = neuralVoices + normalVoices
 voiceSearch = re.compile(r"^\w+:")
 
 WIDGET_ID = 6
 
 
-class RewardTTSModule(BaseModule):
+class RewardTTSModuleStreamLabs(BaseModule):
     ID = __name__.split(".")[-1]
-    NAME = "Reward TTS"
-    DESCRIPTION = "Play text-to-speech based off highlighted messages"
+    NAME = "Reward TTS - StreamLabs"
+    DESCRIPTION = "Play text-to-speech based off highlighted messages or redeemed reward"
     CATEGORY = "Feature"
     SETTINGS = [
         ModuleSetting(
@@ -117,7 +78,7 @@ class RewardTTSModule(BaseModule):
     def command_skip(self, bot, **rest):
         bot.websocket_manager.emit(widget_id=WIDGET_ID, event="skip_highlight")
 
-    def generateTTS(self, username, message):
+    def generateTTS(self, source, message):
         if self.bot.is_bad_message(message):
             return
 
@@ -130,32 +91,24 @@ class RewardTTSModule(BaseModule):
             ttsVoice = random.choice(allVoices) if self.settings["random_voice"] else self.settings["tts_voice"]
 
         synthArgs = {
-            "Engine": "neural" if ttsVoice in neuralVoices else "standard",
-            "OutputFormat": "mp3",
-            "Text": f"<speak>{message}</speak>",
-            "TextType": "ssml",
-            "VoiceId": ttsVoice,
+            "voice": ttsVoice,
+            "text": message,
         }
 
-        message = re.sub(r"<.*?>", "", message)
-        try:
-            synthResp = self.pollyClient.synthesize_speech(**synthArgs)
-        except botocore.exceptions.ClientError as e:
-            # Some limitation, eg "This voice does not support one of the used SSML features"
-            log.exception(f"Error when trying to generate TTS: {e}")
-            synthArgs["Text"] = message
-            synthArgs["TextType"] = "text"
-            synthResp = self.pollyClient.synthesize_speech(**synthArgs)
-        except botocore.errorfactory.InvalidSsmlException:
-            self.bot.whisper_login(username, "Your message syntax is malformed. Falling back to normal.")
-            synthArgs["Text"] = message
-            synthArgs["TextType"] = "text"
-            synthResp = self.pollyClient.synthesize_speech(**synthArgs)
+        streamlabs_request = requests.post("https://streamlabs.com/polly/speak", json=synthArgs)
+        resp = streamlabs_request.json()
+        if not resp["success"]:
+            self.bot.whisper(source, "Failed to make tts, please contact a mod and try again later ;)")
+            log.warning("Failed to make tts - Streamlabs")
+            return
+
+        tts = requests.get(resp["speak_url"])
+        speech = base64.b64encode(tts.content).decode("utf-8")
 
         payload = {
-            "speech": base64.b64encode(synthResp["AudioStream"].read()).decode("utf-8"),
+            "speech": speech,
             "voice": ttsVoice,
-            "user": username,
+            "user": source.name,
             "message": message,
         }
         self.bot.websocket_manager.emit(widget_id=WIDGET_ID, event="highlight", data=payload)
@@ -189,7 +142,7 @@ class RewardTTSModule(BaseModule):
             if user.timed_out:
                 return
 
-        self.generateTTS(source.name, message)
+        self.generateTTS(source, message)
 
     def load_commands(self, **options):
         self.commands["skiptts"] = Command.raw_command(

@@ -66,7 +66,8 @@ from pajbot.modules.bet import BetModule
 from pajbot.modules.spotify_streamlabs import SpotifyStreamLabs
 from pajbot.modules.pnsl import PNSLModule
 from pajbot.modules.spotifyquery import SpotifySongQuery
-from pajbot.modules.reward_tts import RewardTTSModule
+from pajbot.modules.reward_tts_amazon import RewardTTSModuleAmazonule
+from pajbot.modules.reward_tts_streamlabs import RewardTTSModuleStreamLabs
 from pajbot.modules.convert_points import ConvertPoints
 from pajbot.modules.paidtimeout import PaidTimeoutModule
 from pajbot.modules.random_redeem_points import RandomRedeem

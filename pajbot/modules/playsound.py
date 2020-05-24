@@ -94,9 +94,9 @@ class PlaysoundModule(BaseModule):
             type="text",
             required=False,
             default="",
-            constraints={"min_str_len": 36, "max_str_len": 36},
         ),
         ModuleSetting(key="use_queue", label="Queue playsounds", type="boolean", required=True, default=True),
+        ModuleSetting(key="disable_command", label="Disable the playsound command", type="boolean", required=True, default=False),
     ]
 
     def __init__(self, bot):
@@ -502,25 +502,26 @@ class PlaysoundModule(BaseModule):
         from pajbot.models.command import Command
         from pajbot.models.command import CommandExample
 
-        playsound_command = Command.raw_command(
-            self.play_sound,
-            delay_all=0,
-            delay_user=0,
-            description="Play a sound on stream!",
-            can_execute_with_whisper=self.settings["can_whisper"],
-            examples=[
-                CommandExample(
-                    None,
-                    'Play the "doot" sample',
-                    chat="user:!playsound doot\n" "bot>user:Successfully played the sound doot on stream!",
-                ).parse()
-            ],
-        )
+        if not self.settings["disable_command"]:
+            playsound_command = Command.raw_command(
+                self.play_sound,
+                delay_all=0,
+                delay_user=0,
+                description="Play a sound on stream!",
+                can_execute_with_whisper=self.settings["can_whisper"],
+                examples=[
+                    CommandExample(
+                        None,
+                        'Play the "doot" sample',
+                        chat="user:!playsound doot\n" "bot>user:Successfully played the sound doot on stream!",
+                    ).parse()
+                ],
+            )
 
-        playsound_command.long_description = 'Playsounds can be tried out <a href="/playsounds">here</a>'
+            playsound_command.long_description = 'Playsounds can be tried out <a href="/playsounds">here</a>'
 
-        for name in self.settings["command_name"].split("|"):
-            self.commands[name] = playsound_command
+            for name in self.settings["command_name"].split("|"):
+                self.commands[name] = playsound_command
 
         self.commands["add"] = Command.multiaction_command(
             level=100,
