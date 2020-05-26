@@ -74,6 +74,8 @@ class ChannelPointTimeout(BaseModule):
                     self.user_list[str_user_id] = utils.now() + timedelta(seconds=duration)
                     self.bot.timeout(user, duration, f"{redeemer.name} paid for their timeout")
                     self.bot.whisper(redeemer, f"Timedout {user.name} for {duration} seconds")
+                    if not user.ignored:
+                        user.num_paid_timeouts += 1
                     return
 
                 if str_user_id not in self.user_list or self.user_list[str_user_id] < utils.now():
@@ -85,8 +87,6 @@ class ChannelPointTimeout(BaseModule):
                 self.bot.untimeout(user)
                 user.timed_out = False
                 self.bot.whisper(redeemer, f"Successfully untimed-out {user.name}")
-                if not user.ignored:
-                    user.num_paid_timeouts += 1
                 del self.user_list[str_user_id]
 
     def enable(self, bot):
