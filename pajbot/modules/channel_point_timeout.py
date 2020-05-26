@@ -98,7 +98,7 @@ class ChannelPointTimeout(BaseModule):
 
     def on_message(self, source, message, event, **rest):
         reward_id = self.isReward(event)
-        if self.settings["redeemed_id"] and reward_id:
+        if not reward_id:
             return
 
         self.on_redeem(source, reward_id, message)
