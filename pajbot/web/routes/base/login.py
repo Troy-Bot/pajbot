@@ -233,7 +233,7 @@ def init(app):
         user_data = app.spotify_player_api.get_user_data(access_token)
 
         redis = RedisManager.get()
-        redis.set(f"authentication:user-access-token:{user_data['id']}", json.dumps(access_token.jsonify()))
+        redis.set(f"authentication:spotify-access-token:{user_data['id']}", json.dumps(access_token.jsonify()))
         log.info(f"Successfully updated spotify {user_data['display_name']} ({user_data['id']}) token in redis")
 
         return redirect(return_to)
