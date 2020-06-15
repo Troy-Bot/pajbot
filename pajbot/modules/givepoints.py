@@ -47,7 +47,6 @@ class GivePointsModule(BaseModule):
     def give_points(self, bot, source, message, **rest):
         if message is None or len(message) == 0:
             # The user did not supply any arguments
-            bot.whisper(source, f"Usage: !{self.command_name} USERNAME POINTS")
             return False
 
         msg_split = message.split(" ")
@@ -66,7 +65,7 @@ class GivePointsModule(BaseModule):
 
         if num_points <= 0:
             # The user tried to specify a negative amount of points
-            bot.whisper(source, "You cannot give away negative points WeirdChamp")
+            bot.whisper(source, "You cannot give away negative points OMGScoots")
             return True
 
         if not source.can_afford(num_points):
@@ -83,7 +82,7 @@ class GivePointsModule(BaseModule):
 
             if target == source:
                 # The user tried giving points to themselves
-                bot.whisper(source, "You can't give points to yourself WeirdChamp")
+                bot.whisper(source, "You can't give points to yourself OMGScoots")
                 return True
 
             if self.settings["target_requires_sub"] is True and target.subscriber is False:
@@ -95,7 +94,7 @@ class GivePointsModule(BaseModule):
             target.points += num_points
 
             bot.whisper(source, f"Successfully gave away {num_points} points to {target}")
-            bot.whisper(target, f"{source} just gave you {num_points} points! You should probably thank them ;)")
+            bot.whisper(target, f"{source} just gave you {num_points} points! You should probably thank them ;-)")
 
     def load_commands(self, **options):
         self.command_name = self.settings["command_name"].lower().replace("!", "").replace(" ", "")

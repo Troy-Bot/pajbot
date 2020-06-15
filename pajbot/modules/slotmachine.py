@@ -208,12 +208,13 @@ class SlotMachineModule(BaseModule):
                 CommandExample(
                     None,
                     "SlotMachine for 69 points",
-                    chat="user:!slotmachine 69\n" "bot:troydota won 69 points in slotmachine xd! FeelsGoodMan",
+                    chat="user:!slotmachine 69\n" "bot:pajlada won 69 points in slotmachine xd! FeelsGoodMan",
                     description="Do a slot machine pull for 69 points",
                 ).parse()
             ],
         )
         self.commands["smp"] = self.commands["slotmachine"]
+        self.commands["slots"] = self.commands["slotmachine"]
 
     def pull(self, bot, source, message, **rest):
         if message is None:

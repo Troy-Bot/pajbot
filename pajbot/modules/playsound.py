@@ -3,7 +3,6 @@ import logging
 import re
 from argparse import ArgumentParser
 
-from pajbot.managers.handler import HandlerManager
 from pajbot.managers.db import DBManager
 from pajbot.models.playsound import Playsound
 from pajbot.modules import BaseModule
@@ -11,13 +10,11 @@ from pajbot.modules import ModuleSetting
 
 log = logging.getLogger(__name__)
 
-WIDGET_ID = 3
-
 
 class PlaysoundModule(BaseModule):
     ID = __name__.split(".")[-1]
     NAME = "Playsound"
-    DESCRIPTION = "Play a sound on stream with !playsound"
+    DESCRIPTION = "Play a sound on stream with !#playsound"
     CATEGORY = "Feature"
     SETTINGS = [
         ModuleSetting(
@@ -30,12 +27,13 @@ class PlaysoundModule(BaseModule):
             constraints={"min_value": 0, "max_value": 999999},
         ),
         ModuleSetting(
-            key="command_name",
-            label="Name of command",
-            type="text",
+            key="token_cost",
+            label="Token cost",
+            type="number",
             required=True,
-            placeholder="playsound",
-            default="playsound",
+            placeholder="Token cost",
+            default=0,
+            constraints={"min_value": 0, "max_value": 15},
         ),
         ModuleSetting(
             key="global_cd",
@@ -56,15 +54,6 @@ class PlaysoundModule(BaseModule):
             constraints={"min_value": 0, "max_value": 600},
         ),
         ModuleSetting(
-            key="default_playsound_tier",
-            label="Global Sub Tier (0-3)",
-            type="number",
-            required=True,
-            placeholder="",
-            default=0,
-            constraints={"min_value": 0, "max_value": 3},
-        ),
-        ModuleSetting(
             key="global_volume",
             label="Global volume (0-100)",
             type="number",
@@ -73,6 +62,7 @@ class PlaysoundModule(BaseModule):
             default=40,
             constraints={"min_value": 0, "max_value": 100},
         ),
+        ModuleSetting(key="sub_only", label="Subscribers only", type="boolean", required=True, default=False),
         ModuleSetting(key="can_whisper", label="Command can be whispered", type="boolean", required=True, default=True),
         ModuleSetting(
             key="confirmation_whisper",
@@ -88,15 +78,6 @@ class PlaysoundModule(BaseModule):
             required=True,
             default=True,
         ),
-        ModuleSetting(
-            key="redeem_id_playsounds",
-            label="ID of redemeed prize for playsounds",
-            type="text",
-            required=False,
-            default="",
-            constraints={"min_str_len": 36, "max_str_len": 36},
-        ),
-        ModuleSetting(key="use_queue", label="Queue playsounds", type="boolean", required=True, default=True),
     ]
 
     def __init__(self, bot):
@@ -128,7 +109,7 @@ class PlaysoundModule(BaseModule):
             }
 
             log.debug(f"Playsound module is emitting payload: {json.dumps(payload)}")
-            self.bot.websocket_manager.emit("play_sound", WIDGET_ID, payload)
+            self.bot.websocket_manager.emit("play_sound", payload)
 
     def reset_global_cd(self):
         self.global_cooldown = False
@@ -146,13 +127,8 @@ class PlaysoundModule(BaseModule):
             if playsound is None:
                 bot.whisper(
                     source,
-                    f"The playsound you gave does not exist. Check out all the valid playsounds here: https://{self.bot.config['web']['domain']}/playsounds",
+                    f"The playsound you gave does not exist. Check out all the valid playsounds here: https://{self.bot.bot_domain}/playsounds",
                 )
-                return False
-
-            playsoundTier = playsound.tier or self.settings["default_playsound_tier"]
-            if int(source.tier) < playsoundTier and source.level < 500:
-                bot.whisper(source, f"This playsound is specific for tier {playsoundTier} and up subs")
                 return False
 
             if self.global_cooldown:
@@ -177,26 +153,17 @@ class PlaysoundModule(BaseModule):
             if not playsound.enabled:
                 bot.whisper(
                     source,
-                    f"The playsound you gave is disabled. Check out all the valid playsounds here: https://{self.bot.config['web']['domain']}/playsounds",
+                    f"The playsound you gave is disabled. Check out all the valid playsounds here: https://{self.bot.bot_domain}/playsounds",
                 )
                 return False
 
             payload = {
                 "link": playsound.link,
                 "volume": int(round(playsound.volume * self.settings["global_volume"] / 100)),
-                "use_queue": self.settings["use_queue"],
             }
 
-            cost = playsound.cost if playsound.cost else self.settings["point_cost"]
-
-            if source.points >= cost:
-                source.points = source.points - cost
-            else:
-                bot.whisper(source, f"You only have {source.points} and you need {cost} to play {playsound.name}")
-                return False
-
             log.debug(f"Playsound module is emitting payload: {json.dumps(payload)}")
-            bot.websocket_manager.emit("play_sound", WIDGET_ID, payload)
+            bot.websocket_manager.emit("play_sound", payload)
 
             if self.settings["confirmation_whisper"]:
                 bot.whisper(source, f"Successfully played the sound {playsound_name} on stream!")
@@ -217,12 +184,10 @@ class PlaysoundModule(BaseModule):
         parser = ArgumentParser()
         parser.add_argument("--volume", dest="volume", type=int)
         # we parse this manually so we can allow "none" and things like that to unset the cooldown
-        parser.add_argument("--cost", dest="cost", type=str)
         parser.add_argument("--cooldown", dest="cooldown", type=str)
         parser.add_argument("--enabled", dest="enabled", action="store_true")
         parser.add_argument("--disabled", dest="enabled", action="store_false")
-        parser.add_argument("--tier", dest="tier", type=int)
-        parser.set_defaults(volume=None, cooldown=None, enabled=None, cost=None, tier=None)
+        parser.set_defaults(volume=None, cooldown=None, enabled=None)
 
         try:
             args, unknown = parser.parse_known_args(message.split())
@@ -298,52 +263,6 @@ class PlaysoundModule(BaseModule):
         return True
 
     @staticmethod
-    def validate_tier(tier):
-        return tier is None or tier > 0 and tier <= 3
-
-    def update_tier(self, bot, source, playsound, parsed_options):
-        if "tier" in parsed_options:
-            tier = parsed_options["tier"]
-            if bool(tier) is False:
-                tier = None
-            else:
-                try:
-                    tier = int(parsed_options["tier"])
-                except ValueError:
-                    bot.whisper(source, "Error: Tier must be a number or empty.")
-                    return False
-
-            if not self.validate_tier(tier):
-                bot.whisper(source, "Error: Tier must be > 0 and <= 3 or empty.")
-                return False
-
-            playsound.tier = tier
-
-        return True
-
-    @staticmethod
-    def validate_cost(cost):
-        return cost is None or cost >= 0
-
-    def update_cost(self, bot, source, playsound, parsed_options):
-        if "cost" in parsed_options:
-            if parsed_options["cost"].lower() == "none":
-                cost_int = None
-            else:
-                try:
-                    cost_int = int(parsed_options["cost"])
-                except ValueError:
-                    bot.whisper(source.username, 'Error: Cost must be a number or the string "none".')
-                    return False
-
-            if not self.validate_cost(cost_int):
-                bot.whisper(source.username, "Error: Cost must be positive.")
-                return False
-
-            playsound.cost = cost_int
-        return True
-
-    @staticmethod
     def update_enabled(bot, source, playsound, parsed_options):
         if "enabled" in parsed_options:
             playsound.enabled = parsed_options["enabled"]
@@ -372,7 +291,7 @@ class PlaysoundModule(BaseModule):
             return
 
         with DBManager.create_session_scope() as session:
-            count = session.query(Playsound).filter(Playsound.name == name.lower()).count()
+            count = session.query(Playsound).filter(Playsound.name == name).count()
             if count > 0:
                 bot.whisper(
                     source,
@@ -381,18 +300,12 @@ class PlaysoundModule(BaseModule):
                 )
                 return
 
-            playsound = Playsound(name=name.lower())
+            playsound = Playsound(name=name)
 
             if not self.update_link(bot, source, playsound, link):
                 return
 
             if not self.update_volume(bot, source, playsound, options):
-                return
-
-            if not self.update_cost(bot, source, playsound, options):
-                return
-
-            if not self.update_tier(bot, source, playsound, options):
                 return
 
             if not self.update_cooldown(bot, source, playsound, options):
@@ -424,7 +337,7 @@ class PlaysoundModule(BaseModule):
             return
 
         with DBManager.create_session_scope() as session:
-            playsound = session.query(Playsound).filter(Playsound.name == name.lower()).one_or_none()
+            playsound = session.query(Playsound).filter(Playsound.name == name).one_or_none()
             if playsound is None:
                 bot.whisper(
                     source,
@@ -437,12 +350,6 @@ class PlaysoundModule(BaseModule):
                 return
 
             if not self.update_volume(bot, source, playsound, options):
-                return
-
-            if not self.update_cost(bot, source, playsound, options):
-                return
-
-            if not self.update_tier(bot, source, playsound, options):
                 return
 
             if not self.update_cooldown(bot, source, playsound, options):
@@ -495,15 +402,18 @@ class PlaysoundModule(BaseModule):
 
             bot.whisper(
                 source,
-                f"name={playsound.name}, link={playsound.link}, volume={playsound.volume}, cooldown={playsound.cooldown}, tier={playsound.tier}, enabled={playsound.enabled}, cost={playsound.cost}",
+                f"name={playsound.name}, link={playsound.link}, volume={playsound.volume}, cooldown={playsound.cooldown}, enabled={playsound.enabled}",
             )
 
     def load_commands(self, **options):
         from pajbot.models.command import Command
         from pajbot.models.command import CommandExample
 
-        playsound_command = Command.raw_command(
+        self.commands["#playsound"] = Command.raw_command(
             self.play_sound,
+            tokens_cost=self.settings["token_cost"],
+            cost=self.settings["point_cost"],
+            sub_only=self.settings["sub_only"],
             delay_all=0,
             delay_user=0,
             description="Play a sound on stream!",
@@ -512,15 +422,12 @@ class PlaysoundModule(BaseModule):
                 CommandExample(
                     None,
                     'Play the "doot" sample',
-                    chat="user:!playsound doot\n" "bot>user:Successfully played the sound doot on stream!",
+                    chat="user:!#playsound doot\n" "bot>user:Successfully played the sound doot on stream!",
                 ).parse()
             ],
         )
 
-        playsound_command.long_description = 'Playsounds can be tried out <a href="/playsounds">here</a>'
-
-        for name in self.settings["command_name"].split("|"):
-            self.commands[name] = playsound_command
+        self.commands["#playsound"].long_description = 'Playsounds can be tried out <a href="/playsounds">here</a>'
 
         self.commands["add"] = Command.multiaction_command(
             level=100,
@@ -671,30 +578,3 @@ class PlaysoundModule(BaseModule):
                 )
             },
         )
-
-    def isReward(self, event):
-        for eventTag in event.tags:
-            if eventTag["key"] == "custom-reward-id":
-                return eventTag["value"]
-
-        return False
-
-    def on_message(self, source, message, event, emote_instances, **rest):
-        redeemed_id = self.isReward(event)
-        if not redeemed_id:
-            return
-
-        if redeemed_id == self.settings["redeem_id_playsounds"]:
-            self.play_sound(self.bot, source, message)
-
-    def enable(self, bot):
-        if not bot:
-            return
-
-        HandlerManager.add_handler("on_message", self.on_message)
-
-    def disable(self, bot):
-        if not bot:
-            return
-
-        HandlerManager.remove_handler("on_message", self.on_message)
