@@ -165,6 +165,48 @@ def init(app):
 
         return redirect(return_to)
 
+    @app.route("/login/spotify_auth")
+    def spotify_authorized():
+        return_to = "/"
+
+        def login_error(code, detail_msg=None):
+            return render_template("login_error.html", return_to=return_to, detail_msg=detail_msg), code
+
+        # determine if we got ?code= or ?error= (success or not)
+        # https://tools.ietf.org/html/rfc6749#section-4.1.2
+        if "error" in request.args:
+            # user was sent back with an error condition
+            error_code = request.args["error"]
+            optional_error_description = request.args.get("error_description", None)
+
+            if optional_error_description is not None:
+                user_detail_msg = f"Error returned from Spotify: {optional_error_description} (code: {error_code}"
+            else:
+                user_detail_msg = f"Error returned from Spotify (code: {error_code})"
+
+            return login_error(400, user_detail_msg)
+
+        if "code" not in request.args:
+            return login_error(400, "No ?code or ?error present on the request")
+
+        # successful authorization
+        code = request.args["code"]
+
+        try:
+            # gets us an UserAcce   ssToken object
+            access_token = app.spotify_token_api.get_user_access_token(code)
+        except:
+            log.exception("Could not exchange given code for access token with Twitch")
+            return login_error(500, "Could not exchange the given code for an access token.")
+
+        user_data = app.spotify_player_api.get_user_data(access_token)
+
+        redis = RedisManager.get()
+        redis.set(f"authentication:spotify-access-token:{user_data['id']}", json.dumps(access_token.jsonify()))
+        log.info(f"Successfully updated spotify {user_data['display_name']} ({user_data['id']}) token in redis")
+
+        return redirect(return_to)
+
     @app.route("/logout")
     def logout():
         session.pop("user", None)
