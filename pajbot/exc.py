@@ -16,27 +16,3 @@ class InvalidPointAmount(Exception):
 
 class TimeoutException(Exception):
     pass
-
-
-class ManagerDisabled(Exception):
-    pass
-
-
-class InvalidState(Exception):
-    pass
-
-
-class InvalidVolume(Exception):
-    pass
-
-
-class InvalidSong(Exception):
-    pass
-
-
-class InvalidPlaylist(Exception):
-    pass
-
-
-class SongBanned(Exception):
-    pass

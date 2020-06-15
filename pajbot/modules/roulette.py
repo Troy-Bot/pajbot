@@ -25,14 +25,6 @@ class RouletteModule(BaseModule):
     CATEGORY = "Game"
     SETTINGS = [
         ModuleSetting(
-            key="command_name",
-            label="Name of roulette command",
-            type="text",
-            required=True,
-            placeholder="roulette",
-            default="roulette",
-        ),
-        ModuleSetting(
             key="message_won",
             label="Won message | Available arguments: {bet}, {points}, {user}",
             type="text",
@@ -141,7 +133,7 @@ class RouletteModule(BaseModule):
         self.last_add = None
 
     def load_commands(self, **options):
-        roulette = Command.raw_command(
+        self.commands["roulette"] = Command.raw_command(
             self.roulette,
             delay_all=self.settings["online_global_cd"],
             delay_user=self.settings["online_user_cd"],
@@ -151,13 +143,11 @@ class RouletteModule(BaseModule):
                 CommandExample(
                     None,
                     "Roulette for 69 points",
-                    chat="user:!roulette 69\n" "bot:troydota won 69 points in roulette! FeelsGoodMan",
+                    chat="user:!roulette 69\n" "bot:pajlada won 69 points in roulette! FeelsGoodMan",
                     description="Do a roulette for 69 points",
                 ).parse()
             ],
         )
-        for name in self.settings["command_name"].split("|"):
-            self.commands[name] = roulette
 
     def rigged_random_result(self):
         return random.randint(1, 100) > self.settings["rigged_percentage"]

@@ -11,8 +11,6 @@ from pajbot.modules import ModuleType
 from pajbot.modules.basic import BasicCommandsModule
 from pajbot.utils import split_into_chunks_with_prefix
 
-from sqlalchemy import text
-
 log = logging.getLogger(__name__)
 
 
@@ -36,56 +34,14 @@ class AdminCommandsModule(BaseModule):
             rest = " ".join(msg_args[1:])
             bot.whisper_login(username, rest)
 
-    @staticmethod
-    def mass_points(bot, source, message, **rest):
-        if not message:
-            return False
-
-        msg_split = message.split(" ")
-        if len(msg_split) < 1:
-            # The user did not supply enough arguments
-            bot.whisper(source, f"Usage: !masspoints POINTS")
-            return False
-
-        try:
-            num_points = int(msg_split[0])
-        except (ValueError, TypeError):
-            # The user did not specify a valid integer for points
-            bot.whisper(source, f"Invalid amount of points. Usage: !masspoints USERNAME POINTS")
-            return False
-
-        chatter_logins = bot.twitch_tmi_api.get_chatter_logins_by_login(bot.streamer)
-        chatter_basics = bot.twitch_helix_api.bulk_get_user_basics_by_login(chatter_logins)
-
-        # filter out invalid/deleted/etc. users
-        chatter_basics = [e for e in chatter_basics if e is not None]
-
-        update_values = [{**basics.jsonify(), "add_points": num_points} for basics in chatter_basics]
-
-        with DBManager.create_session_scope() as db_session:
-            db_session.execute(
-                text(
-                    """
-INSERT INTO "user"(id, login, name, points)
-    VALUES (:id, :login, :name, :add_points)
-ON CONFLICT (id) DO UPDATE SET
-    points = "user".points + :add_points
-WHERE "user".ignored = False and "user".banned = False
-            """
-                ),
-                update_values,
-            )
-        bot.say(f"{num_points} points have been given to {len(chatter_basics)} chatters!")
-
-    @staticmethod
-    def edit_points(bot, source, message, **rest):
+    def edit_points(self, bot, source, message, **rest):
         if not message:
             return False
 
         msg_split = message.split(" ")
         if len(msg_split) < 2:
             # The user did not supply enough arguments
-            bot.whisper(source, f"Usage: !editpoints USERNAME POINTS")
+            bot.whisper(source, f"Usage: !{self.command_name} USERNAME POINTS")
             return False
 
         username_input = msg_split[0]
@@ -94,7 +50,7 @@ WHERE "user".ignored = False and "user".banned = False
             num_points = int(msg_split[1])
         except (ValueError, TypeError):
             # The user did not specify a valid integer for points
-            bot.whisper(source, f"Invalid amount of points. Usage: !editpoints USERNAME POINTS")
+            bot.whisper(source, f"Invalid amount of points. Usage: !{self.command_name} USERNAME POINTS")
             return False
 
         with DBManager.create_session_scope() as db_session:
@@ -110,15 +66,14 @@ WHERE "user".ignored = False and "user".banned = False
             else:
                 bot.whisper(source, f"Successfully removed {abs(num_points)} points from {user}.")
 
-    @staticmethod
-    def set_points(bot, source, message, **rest):
+    def set_points(self, bot, source, message, **rest):
         if not message:
             return False
 
         msg_split = message.split(" ")
         if len(msg_split) < 2:
             # The user did not supply enough arguments
-            bot.whisper(source, f"Usage: !setpoints USERNAME POINTS")
+            bot.whisper(source, f"Usage: !{self.command_name} USERNAME POINTS")
             return False
 
         username = msg_split[0]
@@ -130,7 +85,7 @@ WHERE "user".ignored = False and "user".banned = False
             num_points = int(msg_split[1])
         except (ValueError, TypeError):
             # The user did not specify a valid integer for points
-            bot.whisper(source, f"Invalid amount of points. Usage: !setpoints USERNAME POINTS")
+            bot.whisper(source, f"Invalid amount of points. Usage: !{self.command_name} USERNAME POINTS")
             return False
 
         with DBManager.create_session_scope() as db_session:
@@ -291,28 +246,15 @@ WHERE "user".ignored = False and "user".banned = False
                 CommandExample(
                     None,
                     "Give a user points",
-                    chat="user:!editpoints troydota 500\n" "bot>user:Successfully gave troydota 500 points.",
-                    description="This creates 500 points and gives them to troydota",
+                    chat="user:!editpoints pajlada 500\n" "bot>user:Successfully gave pajlada 500 points.",
+                    description="This creates 500 points and gives them to pajlada",
                 ).parse(),
                 CommandExample(
                     None,
                     "Remove points from a user",
-                    chat="user:!editpoints troydota -500\n" "bot>user:Successfully removed 500 points from troydota.",
-                    description="This removes 500 points from troydota. Users can go into negative points with this.",
+                    chat="user:!editpoints pajlada -500\n" "bot>user:Successfully removed 500 points from pajlada.",
+                    description="This removes 500 points from pajlada. Users can go into negative points with this.",
                 ).parse(),
-            ],
-        )
-        self.commands["masspoints"] = Command.raw_command(
-            self.mass_points,
-            level=1500,
-            description="Gives points to everyone in the chat",
-            examples=[
-                CommandExample(
-                    None,
-                    "Give a user points",
-                    chat="user:!masspoints 500\n" "bot>user:Successfully gave everyone 500 points.",
-                    description="This gives everyone 500 points",
-                ).parse()
             ],
         )
         self.commands["setpoints"] = Command.raw_command(
@@ -323,8 +265,8 @@ WHERE "user".ignored = False and "user".banned = False
                 CommandExample(
                     None,
                     "Set a user's points",
-                    chat="user:!setpoints troydota 500\n" "bot>user:Successfully set troydota's points to 500.",
-                    description="This sets troydota's points to 500.",
+                    chat="user:!setpoints pajlada 500\n" "bot>user:Successfully set pajlada's points to 500.",
+                    description="This sets pajlada's points to 500.",
                 ).parse()
             ],
         )

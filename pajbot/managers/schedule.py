@@ -23,8 +23,6 @@ class ScheduledJob:
     def remove(self, *args, **kwargs):
         if self.job:
             self.job.remove(*args, **kwargs)
-        else:
-            log.warning("Job doesnt exist")
 
 
 class ScheduleManager:

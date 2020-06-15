@@ -83,9 +83,8 @@ class ConnectionManager:
 
             phrase_data = {"nickname": self.bot.nickname, "version": self.bot.version_long}
 
-            if not self.bot.silent:
-                for p in self.bot.phrases["welcome"]:
-                    self.bot.privmsg(p.format(**phrase_data))
+            for p in self.bot.phrases["welcome"]:
+                self.bot.privmsg(p.format(**phrase_data))
 
             # XXX
             self.bot.execute_every(30, lambda: self.main_conn.ping("tmi.twitch.tv"))
