@@ -4,8 +4,6 @@ from pajbot.modules.base import ModuleType
 from pajbot.modules.linkchecker import BlacklistedLink
 from pajbot.modules.linkchecker import WhitelistedLink
 from pajbot.modules.linktracker import LinkTrackerLink
-
-
 from pajbot.modules.analogy import AnalogyModule
 from pajbot.modules.ascii import AsciiProtectionModule
 from pajbot.modules.banphrase import BanphraseModule
@@ -41,7 +39,6 @@ from pajbot.modules.linkchecker import LinkCheckerModule
 from pajbot.modules.linktracker import LinkTrackerModule
 from pajbot.modules.math import MathModule
 from pajbot.modules.maxmsglength import MaxMsgLengthModule
-from pajbot.modules.casechecker import CaseCheckerModule
 from pajbot.modules.moderators_refresh import ModeratorsRefreshModule
 from pajbot.modules.songrequest import SongrequestModule
 from pajbot.modules.pointlottery import PointLotteryModule
@@ -57,7 +54,6 @@ from pajbot.modules.raffle import RaffleModule
 from pajbot.modules.repspam import RepspamModule
 from pajbot.modules.roulette import RouletteModule
 from pajbot.modules.slotmachine import SlotMachineModule
-from pajbot.modules.subalert import SubAlertModule
 from pajbot.modules.playsound import PlaysoundModule
 from pajbot.modules.showemote import ShowEmoteModule
 from pajbot.modules.subscriber_fetch import SubscriberFetchModule
