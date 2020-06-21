@@ -10,8 +10,6 @@ import pajbot.web.routes.admin.playsounds
 import pajbot.web.routes.admin.predictions
 import pajbot.web.routes.admin.streamer
 import pajbot.web.routes.admin.timers
-import pajbot.web.routes.admin.songrequest
-import pajbot.web.routes.admin.overlays
 
 
 def init(app):
@@ -27,7 +25,5 @@ def init(app):
     pajbot.web.routes.admin.predictions.init(page)
     pajbot.web.routes.admin.streamer.init(page)
     pajbot.web.routes.admin.timers.init(page)
-    pajbot.web.routes.admin.songrequest.init(page)
-    pajbot.web.routes.admin.overlays.init(page)
 
     app.register_blueprint(page)

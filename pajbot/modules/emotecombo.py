@@ -6,8 +6,6 @@ from pajbot.modules.base import ModuleSetting
 
 log = logging.getLogger(__name__)
 
-WIDGET_ID = 5
-
 
 class EmoteComboModule(BaseModule):
     ID = __name__.split(".")[-1]
@@ -35,9 +33,7 @@ class EmoteComboModule(BaseModule):
         self.emote_count += 1
         if self.emote_count >= self.settings["min_emote_combo"]:
             self.bot.websocket_manager.emit(
-                event="emote_combo",
-                data={"emote": self.current_emote.jsonify(), "count": self.emote_count},
-                widget_id=WIDGET_ID,
+                "emote_combo", {"emote": self.current_emote.jsonify(), "count": self.emote_count}
             )
 
     def reset(self):

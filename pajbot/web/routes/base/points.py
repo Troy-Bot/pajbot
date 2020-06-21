@@ -8,7 +8,7 @@ from sqlalchemy import text
 from pajbot.managers.db import DBManager
 from pajbot.models.user import User
 from pajbot.models.webcontent import WebContent
-from pajbot.modules import Loyalty
+from pajbot.modules import ChattersRefreshModule
 
 log = logging.getLogger(__name__)
 
@@ -44,9 +44,9 @@ def init(app):
                 )
             )
 
-            chatters_refresh_enabled = Loyalty.is_enabled()
-            chatters_refresh_settings = Loyalty.module_settings()
-            chatters_refresh_interval = Loyalty.UPDATE_INTERVAL
+            chatters_refresh_enabled = ChattersRefreshModule.is_enabled()
+            chatters_refresh_settings = ChattersRefreshModule.module_settings()
+            chatters_refresh_interval = ChattersRefreshModule.UPDATE_INTERVAL
 
             return render_template(
                 "points.html",

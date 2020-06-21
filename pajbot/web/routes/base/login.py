@@ -4,7 +4,6 @@ import logging
 import base64
 import urllib
 from json import JSONDecodeError
-from datetime import timedelta, datetime
 
 from flask import redirect
 from flask import render_template
@@ -14,7 +13,6 @@ from flask import session
 from pajbot.managers.db import DBManager
 from pajbot.managers.redis import RedisManager
 from pajbot.models.user import User
-from pajbot import utils
 
 log = logging.getLogger(__name__)
 
@@ -37,17 +35,6 @@ def init(app):
         authorize_url = "https://id.twitch.tv/oauth2/authorize?" + urllib.parse.urlencode(params)
         return redirect(authorize_url)
 
-    def spotify_login(scopes):
-        params = {
-            "client_id": app.bot_config["spotify"]["client_id"],
-            "redirect_uri": app.bot_config["spotify"]["redirect_uri"],
-            "response_type": "code",
-            "scope": " ".join(scopes),
-        }
-
-        authorize_url = "https://accounts.spotify.com/authorize?" + urllib.parse.urlencode(params)
-        return redirect(authorize_url)
-
     bot_scopes = [
         "user_read",
         "user:edit",
@@ -61,22 +48,7 @@ def init(app):
         "channel:read:subscriptions",
     ]
 
-    streamer_scopes = [
-        "channel:read:subscriptions",
-        "channel:read:redemptions",
-        "bits:read",
-        "channel_subscriptions",
-        "moderation:read",
-        "channel_editor",
-    ]
-
-    spotify_scopes = [
-        "user-read-playback-state",
-        "user-modify-playback-state",
-        "user-read-currently-playing",
-        "user-read-email",
-        "user-read-private",
-    ]
+    streamer_scopes = ["channel:read:subscriptions", "channel_editor"]
 
     @app.route("/login")
     def login():
@@ -89,14 +61,6 @@ def init(app):
     @app.route("/streamer_login")
     def streamer_login():
         return twitch_login(scopes=streamer_scopes)
-
-    @app.route("/spotify_login")
-    def login_spotify():
-        return spotify_login(spotify_scopes)
-
-    @app.route("/login/error")
-    def login_error():
-        return render_template("login_error.html")
 
     @app.route("/login/authorized")
     def authorized():
@@ -140,8 +104,15 @@ def init(app):
             error_code = request.args["error"]
             optional_error_description = request.args.get("error_description", None)
 
+            if error_code == "access_denied":
+                # User pressed "Cancel" button. We don't want to show an error page, instead we will just
+                # redirect them to where they were coming from.
+                # See also https://tools.ietf.org/html/rfc6749#section-4.1.2.1 for error codes and documentation for them
+                return redirect(return_to)
+
+            # All other error conditions, we show an error page.
             if optional_error_description is not None:
-                user_detail_msg = f"Error returned from Twitch: {optional_error_description} (code: {error_code}"
+                user_detail_msg = f"Error returned from Twitch: {optional_error_description} (code: {error_code})"
             else:
                 user_detail_msg = f"Error returned from Twitch (code: {error_code})"
 
@@ -163,9 +134,6 @@ def init(app):
         user_basics = app.twitch_helix_api.fetch_user_basics_from_authorization(
             (app.api_client_credentials, access_token)
         )
-
-        session["twitch_token"] = access_token.access_token
-        session["twitch_token_expire"] = datetime.timestamp(utils.now() + access_token.expires_in * 0.75)
 
         with DBManager.create_session_scope(expire_on_commit=False) as db_session:
             me = User.from_basics(db_session, user_basics)
@@ -234,7 +202,7 @@ def init(app):
         user_data = app.spotify_player_api.get_user_data(access_token)
 
         redis = RedisManager.get()
-        redis.set(f"authentication:user-access-token:{user_data['id']}", json.dumps(access_token.jsonify()))
+        redis.set(f"authentication:spotify-access-token:{user_data['id']}", json.dumps(access_token.jsonify()))
         log.info(f"Successfully updated spotify {user_data['display_name']} ({user_data['id']}) token in redis")
 
         return redirect(return_to)
@@ -242,8 +210,6 @@ def init(app):
     @app.route("/logout")
     def logout():
         session.pop("user", None)
-        session.pop("twitch_token_expire", None)
-        session.pop("twitch_token", None)
 
         return_to = request.args.get("returnTo", "/")
         if return_to.startswith("/admin"):
