@@ -74,6 +74,8 @@ class ChannelPointTimeout(BaseModule):
                     self.user_list[str_user_id] = utils.now() + timedelta(seconds=duration)
                     self.bot.timeout(user, duration, f"{redeemer.name} paid for their timeout")
                     self.bot.whisper(redeemer, f"Timedout {user.name} for {duration} seconds")
+                    if not user.ignored:
+                        user.num_paid_timeouts += 1
                     return
 
                 if str_user_id not in self.user_list or self.user_list[str_user_id] < utils.now():
@@ -87,14 +89,28 @@ class ChannelPointTimeout(BaseModule):
                 self.bot.whisper(redeemer, f"Successfully untimed-out {user.name}")
                 del self.user_list[str_user_id]
 
+    def isReward(self, event):
+        for eventTag in event.tags:
+            if eventTag["key"] == "custom-reward-id":
+                return eventTag["value"]
+
+        return False
+
+    def on_message(self, source, message, event, **rest):
+        reward_id = self.isReward(event)
+        if not reward_id:
+            return
+
+        self.on_redeem(source, reward_id, message)
+
     def enable(self, bot):
         if not bot:
             return
 
-        HandlerManager.add_handler("on_redeem", self.on_redeem)
+        HandlerManager.add_handler("on_message", self.on_message)
 
     def disable(self, bot):
         if not bot:
             return
 
-        HandlerManager.remove_handler("on_redeem", self.on_redeem)
+        HandlerManager.remove_handler("on_message", self.on_message)
