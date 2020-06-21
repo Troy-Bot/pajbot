@@ -4,6 +4,7 @@ import logging
 import base64
 import urllib
 from json import JSONDecodeError
+from datetime import timedelta, datetime
 
 from flask import redirect
 from flask import render_template
@@ -13,6 +14,7 @@ from flask import session
 from pajbot.managers.db import DBManager
 from pajbot.managers.redis import RedisManager
 from pajbot.models.user import User
+from pajbot import utils
 
 log = logging.getLogger(__name__)
 
@@ -35,6 +37,17 @@ def init(app):
         authorize_url = "https://id.twitch.tv/oauth2/authorize?" + urllib.parse.urlencode(params)
         return redirect(authorize_url)
 
+    def spotify_login(scopes):
+        params = {
+            "client_id": app.bot_config["spotify"]["client_id"],
+            "redirect_uri": app.bot_config["spotify"]["redirect_uri"],
+            "response_type": "code",
+            "scope": " ".join(scopes),
+        }
+
+        authorize_url = "https://accounts.spotify.com/authorize?" + urllib.parse.urlencode(params)
+        return redirect(authorize_url)
+
     bot_scopes = [
         "user_read",
         "user:edit",
@@ -48,7 +61,22 @@ def init(app):
         "channel:read:subscriptions",
     ]
 
-    streamer_scopes = ["channel:read:subscriptions", "channel_editor"]
+    streamer_scopes = [
+        "channel:read:subscriptions",
+        "channel:read:redemptions",
+        "bits:read",
+        "channel_subscriptions",
+        "moderation:read",
+        "channel_editor",
+    ]
+
+    spotify_scopes = [
+        "user-read-playback-state",
+        "user-modify-playback-state",
+        "user-read-currently-playing",
+        "user-read-email",
+        "user-read-private",
+    ]
 
     @app.route("/login")
     def login():
@@ -135,6 +163,9 @@ def init(app):
             (app.api_client_credentials, access_token)
         )
 
+        session["twitch_token"] = access_token.access_token
+        session["twitch_token_expire"] = datetime.timestamp(utils.now() + access_token.expires_in * 0.75)
+
         with DBManager.create_session_scope(expire_on_commit=False) as db_session:
             me = User.from_basics(db_session, user_basics)
             session["user"] = me.jsonify()
@@ -210,6 +241,8 @@ def init(app):
     @app.route("/logout")
     def logout():
         session.pop("user", None)
+        session.pop("twitch_token_expire", None)
+        session.pop("twitch_token", None)
 
         return_to = request.args.get("returnTo", "/")
         if return_to.startswith("/admin"):

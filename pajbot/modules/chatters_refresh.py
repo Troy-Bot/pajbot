@@ -12,7 +12,7 @@ from pajbot.utils import time_method
 log = logging.getLogger(__name__)
 
 
-class ChattersRefreshModule(BaseModule):
+class Loyalty(BaseModule):
     ID = __name__.split(".")[-1]
     NAME = "Loyalty"
     DESCRIPTION = "Earn points and build your watchtime while you watch your favourite streamer!"
@@ -113,6 +113,7 @@ ON CONFLICT (id) DO UPDATE SET
     time_in_chat_online = "user".time_in_chat_online + :add_time_in_chat_online,
     time_in_chat_offline = "user".time_in_chat_offline + :add_time_in_chat_offline,
     last_seen = now()
+WHERE "user".ignored = False and "user".banned = False
             """
                 ),
                 update_values,
