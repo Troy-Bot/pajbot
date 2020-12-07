@@ -116,6 +116,7 @@ class Bot:
             self.streamer = self.channel[1:]
 
         self.bot_domain = self.config["web"]["domain"]
+        self.streamer_display = self.config["web"]["streamer_name"]
 
         log.debug("Loaded config")
 
@@ -129,22 +130,24 @@ class Bot:
         self.twitch_id_api = TwitchIDAPI(self.api_client_credentials)
         self.twitch_tmi_api = TwitchTMIAPI()
         self.app_token_manager = AppAccessTokenManager(self.twitch_id_api, RedisManager.get())
-        self.twitch_helix_api = TwitchHelixAPI(RedisManager.get(), self.app_token_manager)
+        self.twitch_helix_api: TwitchHelixAPI = TwitchHelixAPI(RedisManager.get(), self.app_token_manager)
         self.twitch_v5_api = TwitchKrakenV5API(self.api_client_credentials, RedisManager.get())
 
         self.bot_user_id = self.twitch_helix_api.get_user_id(self.nickname)
         if self.bot_user_id is None:
             raise ValueError("The bot login name you entered under [main] does not exist on twitch.")
 
-        self.streamer_user_id = self.twitch_helix_api.get_user_id(self.streamer)
-        if self.streamer_user_id is None:
+        self.broadcaster = self.twitch_helix_api.get_user_basics_by_login(self.streamer)
+        if self.broadcaster is None:
             raise ValueError("The streamer login name you entered under [main] does not exist on twitch.")
+
+        self.streamer_user_id = self.broadcaster.id
 
         self.streamer_access_token_manager = UserAccessTokenManager(
             api=self.twitch_id_api, redis=RedisManager.get(), username=self.streamer, user_id=self.streamer_user_id
         )
 
-        StreamHelper.init_streamer(self.streamer, self.streamer_user_id)
+        StreamHelper.init_streamer(self.streamer, self.streamer_user_id, self.streamer_display)
 
         # SQL migrations
         with DBManager.create_dbapi_connection_scope() as sql_conn:
@@ -273,6 +276,7 @@ class Bot:
             "version_brief": VERSION,
             "bot_name": self.nickname,
             "bot_domain": self.bot_domain,
+            "streamer_display": self.streamer_display,
         }
 
         self.data_cb = {
@@ -352,6 +356,14 @@ class Bot:
             return getattr(extra["command"].data, key)
         except:
             log.exception("Caught exception in get_source_value")
+
+        return None
+
+    def get_broadcaster_value(self, key, extra={}):
+        try:
+            return getattr(self.broadcaster, key)
+        except:
+            log.exception("Caught exception in get_broadcaster_value")
 
         return None
 
@@ -659,6 +671,10 @@ class Bot:
             source.moderator = tags["mod"] == "1" or source.id == self.streamer_user_id
             # Having the founder badge means that the subscriber tag is set to 0. Therefore it's more stable to just check badges
             source.subscriber = "founder" in badges or "subscriber" in badges
+            # once they are a founder they are always be a founder, regardless if they are a sub or not.
+            if not source.founder:
+                source.founder = "founder" in badges
+            source.vip = "vip" in badges
 
         if not whisper and source.banned:
             self.ban(

@@ -89,6 +89,8 @@ class User(Base):
     ignored = Column(BOOLEAN, nullable=False, server_default="FALSE")
     banned = Column(BOOLEAN, nullable=False, server_default="FALSE")
     timeout_end = Column(UtcDateTime(), nullable=True, server_default="NULL")
+    vip = Column(BOOLEAN, nullable=False, server_default="FALSE")
+    founder = Column(BOOLEAN, nullable=False, server_default="FALSE")
 
     _rank = relationship("UserRank", primaryjoin=foreign(id) == UserRank.user_id, lazy="select")
 
@@ -106,6 +108,8 @@ class User(Base):
         self.ignored = False
         self.banned = False
         self.timeout_end = None
+        self.vip = False
+        self.founder = False
 
         super().__init__(*args, **kwargs)
 
@@ -127,7 +131,7 @@ class User(Base):
     def login(self):
         return self._login
 
-    @login.setter
+    @login.setter  # type: ignore
     def login(self, new_login):
         self._login = new_login
         # force SQLAlchemy to update the value in the database even if the value did not change
@@ -166,11 +170,11 @@ class User(Base):
     def timed_out(self):
         return self.timeout_end is not None and self.timeout_end > utils.now()
 
-    @timed_out.expression
+    @timed_out.expression  # type: ignore
     def timed_out(self):
         return and_(self.timeout_end.isnot(None), self.timeout_end > functions.now())
 
-    @timed_out.setter
+    @timed_out.setter  # type: ignore
     def timed_out(self, timed_out):
         # You can do user.timed_out = False to set user.timeout_end = None
         if timed_out is not False:
@@ -210,32 +214,32 @@ class User(Base):
             raise
 
     def get_warning_keys(self, total_chances, prefix):
-        """ Returns a list of keys that are used to store the users warning status in redis.
-        Example: ['warnings:some-prefix:11148817:0', 'warnings:some-prefix:11148817:1'] """
+        """Returns a list of keys that are used to store the users warning status in redis.
+        Example: ['warnings:some-prefix:11148817:0', 'warnings:some-prefix:11148817:1']"""
         return [f"warnings:{prefix}:{self.id}:{warning_id}" for warning_id in range(0, total_chances)]
 
     @staticmethod
     def get_warnings(redis, warning_keys):
-        """ Pass through a list of warning keys.
+        """Pass through a list of warning keys.
         Example of warning_keys syntax: ['warnings:some-prefix:11148817:0', 'warnings:some-prefix:11148817:1']
         Returns a list of values for the warning keys list above.
         Example: [b'1', None]
         Each instance of None in the list means one more Chance
-        before a full timeout is in order. """
+        before a full timeout is in order."""
 
         return redis.mget(warning_keys)
 
     @staticmethod
     def get_chances_used(warnings):
-        """ Returns a number between 0 and n where n is the amount of
-            chances a user has before he should face the full timeout length. """
+        """Returns a number between 0 and n where n is the amount of
+        chances a user has before he should face the full timeout length."""
 
         return len(warnings) - warnings.count(None)
 
     @staticmethod
     def add_warning(redis, timeout, warning_keys, warnings):
-        """ Returns a number between 0 and n where n is the amount of
-            chances a user has before he should face the full timeout length. """
+        """Returns a number between 0 and n where n is the amount of
+        chances a user has before he should face the full timeout length."""
 
         for i in range(0, len(warning_keys)):
             if warnings[i] is None:
@@ -245,7 +249,7 @@ class User(Base):
         return False
 
     def timeout(self, timeout_length, warning_module=None, use_warnings=True):
-        """ Returns a tuple with the follow data:
+        """Returns a tuple with the follow data:
         How long to timeout the user for, and what the punishment string is
         set to.
         The punishment string is used to clarify whether this was a warning or the real deal.
@@ -265,8 +269,8 @@ class User(Base):
             chances_used = self.get_chances_used(warnings)
 
             if chances_used < total_chances:
-                """ The user used up one of his warnings.
-                Calculate for how long we should time him out. """
+                """The user used up one of his warnings.
+                Calculate for how long we should time him out."""
                 timeout_length = warning_module.settings["base_timeout"] * (chances_used + 1)
                 punishment = f"timed out for {timeout_length} seconds (warning)"
 
@@ -294,6 +298,8 @@ class User(Base):
             "ignored": self.ignored,
             "banned": self.banned,
             "timeout_end": self.timeout_end.isoformat() if self.timeout_end is not None else None,
+            "vip": self.vip,
+            "founder": self.founder,
         }
 
     def __eq__(self, other):
@@ -400,3 +406,59 @@ class User(Base):
     @staticmethod
     def find_by_id(db_session, id):
         return db_session.query(User).filter_by(id=id).one_or_none()
+
+
+class UserChannelInformation:
+    """UserChannelInformation represents part of the information fetched
+    from the Helix Get Channel Information endpoint https://dev.twitch.tv/docs/api/reference#get-channel-information"""
+
+    def __init__(self, broadcaster_language, game_id, game_name, title):
+        self.broadcaster_language = broadcaster_language
+        self.game_id = game_id
+        self.game_name = game_name
+        self.title = title
+
+    def jsonify(self):
+        return {
+            "broadcaster_language": self.broadcaster_language,
+            "game_id": self.game_id,
+            "game_name": self.game_name,
+            "title": self.title,
+        }
+
+    @staticmethod
+    def from_json(json_data):
+        return UserChannelInformation(
+            broadcaster_language=json_data["broadcaster_language"],
+            game_id=json_data["game_id"],
+            game_name=json_data["game_name"],
+            title=json_data["title"],
+        )
+
+
+class UserStream:
+    def __init__(self, viewer_count, game_id, title, started_at, id):
+        self.viewer_count = viewer_count
+        self.game_id = game_id
+        self.title = title
+        self.started_at = started_at
+        self.id = id
+
+    def jsonify(self):
+        return {
+            "viewer_count": self.viewer_count,
+            "game_id": self.game_id,
+            "title": self.title,
+            "started_at": self.started_at,
+            "id": self.id,
+        }
+
+    @staticmethod
+    def from_json(json_data):
+        return UserStream(
+            json_data["viewer_count"],
+            json_data["game_id"],
+            json_data["title"],
+            json_data["started_at"],
+            json_data["id"],
+        )

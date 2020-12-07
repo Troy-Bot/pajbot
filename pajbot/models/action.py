@@ -1,3 +1,5 @@
+from typing import Optional
+
 import collections
 import json
 import logging
@@ -142,8 +144,8 @@ class SubstitutionFilter:
 
 
 class BaseAction:
-    type = None
-    subtype = None
+    type: Optional[str] = None
+    subtype: Optional[str] = None
 
     def reset(self):
         pass
@@ -183,7 +185,7 @@ class MultiAction(BaseAction):
 
     @classmethod
     def ready_built(cls, commands, default=None, fallback=None):
-        """ Useful if you already have a dictionary
+        """Useful if you already have a dictionary
         with commands pre-built.
         """
 
@@ -195,7 +197,7 @@ class MultiAction(BaseAction):
         return multiaction
 
     def run(self, bot, source, message, event={}, args={}):
-        """ If there is more text sent to the multicommand after the
+        """If there is more text sent to the multicommand after the
         initial alias, we _ALWAYS_ assume it's trying the subaction command.
         If the extra text was not a valid command, we try to run the fallback command.
         In case there's no extra text sent, we will try to run the default command.
@@ -354,6 +356,7 @@ def get_substitutions(string, bot):
         method_mapping["args"] = bot.get_args_value
         method_mapping["strictargs"] = bot.get_strictargs_value
         method_mapping["command"] = bot.get_command_value
+        method_mapping["broadcaster"] = bot.get_broadcaster_value
     except AttributeError:
         pass
 
